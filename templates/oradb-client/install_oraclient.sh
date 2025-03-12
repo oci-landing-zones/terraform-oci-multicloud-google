@@ -14,6 +14,9 @@ wget ${ORACLE_DOWNLOAD_URL}/${BASIC_ZIP}
 wget ${ORACLE_DOWNLOAD_URL}/${SQLPLUS_ZIP}
 wget ${ORACLE_DOWNLOAD_URL}/${TOOLS_ZIP}
 
+# Install dependencies
+sudo apt install -y alien libaio1 unzip  wget
+
 # Unzip Packages to installation directory
 sudo mkdir -p $BASE_DIR
 sudo unzip -o $BASIC_ZIP -d $BASE_DIR
