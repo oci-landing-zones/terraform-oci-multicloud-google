@@ -3,7 +3,7 @@
 ## Provision Autonomous Database with Terraform
 <walkthrough-tutorial-duration duration="30"></walkthrough-tutorial-duration>
 
-[![gcp-oci-adbs-quickstart](https://github.com/oracle-quickstart/terraform-oci-multicloud-gcp/blob/main/images/gcp-oci-adbs-quickstart.png?raw=true)](https://github.com/oracle-quickstart/terraform-oci-multicloud-gcp/blob/main/images/gcp-oci-adbs-quickstart.png?raw=true)
+[![gcp-oci-adbs-quickstart](https://github.com/oci-landing-zones/terraform-oci-multicloud-google/blob/main/images/gcp-oci-adbs-quickstart.png?raw=true)](https://github.com/oci-landing-zones/terraform-oci-multicloud-google/blob/main/images/gcp-oci-adbs-quickstart.png?raw=true)
 
 In this tutorial, you will 
 
@@ -15,7 +15,7 @@ In this tutorial, you will
 
 **Let's get started!**
 
-<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oracle-quickstart/terraform-oci-multicloud-gcp)</walkthrough-footnote>
+<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oci-landing-zones/terraform-oci-multicloud-google)</walkthrough-footnote>
 
 ## Prerequisites
 This tutorial has the following prerequisites:
@@ -47,13 +47,13 @@ This tutorial has the following prerequisites:
 
 
 
-<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oracle-quickstart/terraform-oci-multicloud-gcp)</walkthrough-footnote>
+<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oci-landing-zones/terraform-oci-multicloud-google)</walkthrough-footnote>
 
 ## Authenication Google CLI & Terraform
 Cloud Shell support integrated authenication, while a local shell requires explicit authenication setup.
 ### Cloud Shell <walkthrough-cloud-shell-icon	></walkthrough-cloud-shell-icon>
 - When you firstly use `gcloud` or `terraform`, it prompts you to authorize it like below:
-  ![Authorize Cloud Shell](https://github.com/oracle-quickstart/terraform-oci-multicloud-gcp/blob/main/images/gcp-authorize-cloud-shell.png?raw=true)
+  ![Authorize Cloud Shell](https://github.com/oci-landing-zones/terraform-oci-multicloud-google/blob/main/images/gcp-authorize-cloud-shell.png?raw=true)
 - Simply click `Authorize` when you see it (in the next step) to allow the tool using your credentials to make calls.
 - **If you're using Cloud Shell, you can proceed to next step and skip the below.** 
 
@@ -64,7 +64,7 @@ If you are using Local Shell (or Cloud Shell in Ephemeral Mode), use the followi
 - [**Authorizing Google Cloud CLI**](https://cloud.google.com/sdk/docs/authorizing#auth-google): `gcloud auth login`
 - [**Authorizing Terraform**](https://cloud.google.com/docs/terraform/authentication#local_dev_environment): `gcloud auth application-default login`
 
-<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oracle-quickstart/terraform-oci-multicloud-gcp)</walkthrough-footnote>
+<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oci-landing-zones/terraform-oci-multicloud-google)</walkthrough-footnote>
 
 
 ## Google Cloud Project
@@ -74,14 +74,14 @@ If you are using Local Shell (or Cloud Shell in Ephemeral Mode), use the followi
   ``` sh
   gcloud projects describe PROJECT_ID
   ``` 
-<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oracle-quickstart/terraform-oci-multicloud-gcp)</walkthrough-footnote>
+<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oci-landing-zones/terraform-oci-multicloud-google)</walkthrough-footnote>
 
 ## Provision an Autonomous Database + VPC
-Template [gcp-oci-adbs-quickstart](https://github.com/oracle-quickstart/terraform-oci-multicloud-gcp/tree/main/templates/gcp-oci-adbs-quickstart) will be used.
+Template [gcp-oci-adbs-quickstart](https://github.com/oci-landing-zones/terraform-oci-multicloud-google/tree/main/templates/gcp-oci-adbs-quickstart) will be used.
 <walkthrough-footnote></walkthrough-footnote>
 
 ### 1. Customise the sample configuration
-- Open <walkthrough-editor-select-line filePath="cloudshell_open/terraform-oci-multicloud-gcp/examples/adbs-minimal/main.tf" startLine="1" endLine="3" startCharacterOffset="0" endCharacterOffset="0">main.tf</walkthrough-editor-select-line> to update `project` and `customer_email` to start with.
+- Open <walkthrough-editor-select-line filePath="cloudshell_open/terraform-oci-multicloud-google/examples/adbs-minimal/main.tf" startLine="1" endLine="3" startCharacterOffset="0" endCharacterOffset="0">main.tf</walkthrough-editor-select-line> to update `project` and `customer_email` to start with.
 - Review and customise other parameters as needed, save the file when you're done.
 - Setup the admin password using environment variable as shown below. Or you will be prompted when applying the Terraform. 
 - The admin password must be between 12 and 30 characters long and contain a digit.
@@ -128,7 +128,7 @@ terraform plan
   - `adbs_dbid` for [Google Cloud](https://console.cloud.google.com/oracle/autonomous-databases)
   - `adbs_ocid` for [Oracle Cloud](https://cloud.oracle.com/search/?category=resources)
 
-<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oracle-quickstart/terraform-oci-multicloud-gcp)</walkthrough-footnote>
+<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oci-landing-zones/terraform-oci-multicloud-google)</walkthrough-footnote>
 
 ## Provision an client VM in a new client subnet
 
@@ -139,10 +139,10 @@ You've successfully provision an Autonomous Database of *Oracle Database@Google 
 <walkthrough-footnote></walkthrough-footnote>
 ### Let's make some changes
 - Now you can expand the architecture by adding a client subnet and VM with SQLPlus pre-installed using the `oradb-client` template. 
-- Append the below configuraiton to the <walkthrough-editor-open-file filePath="cloudshell_open/terraform-oci-multicloud-gcp/examples/adbs-minimal/main.tf" startLine="19" endLine="20">main.tf</walkthrough-editor-open-file>. Save when you're done.
+- Append the below configuraiton to the <walkthrough-editor-open-file filePath="cloudshell_open/terraform-oci-multicloud-google/examples/adbs-minimal/main.tf" startLine="19" endLine="20">main.tf</walkthrough-editor-open-file>. Save when you're done.
   ```tf
   module "oradb-client" {
-    # source = "github.com/oracle-quickstart/terraform-oci-multicloud-gcp//templates/oradb-client"
+    # source = "github.com/oci-landing-zones/terraform-oci-multicloud-google//templates/oradb-client"
     source = "../../templates/oradb-client"
     project = local.project
     location = local.location
@@ -176,7 +176,7 @@ You've successfully provision an Autonomous Database of *Oracle Database@Google 
 - As no change is expected, you should get 
   `No changes. Your infrastructure matches the configuration.`
   
-<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oracle-quickstart/terraform-oci-multicloud-gcp)</walkthrough-footnote>
+<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oci-landing-zones/terraform-oci-multicloud-google)</walkthrough-footnote>
 
 ## Perform a sample query from client VM
 
@@ -217,20 +217,20 @@ You've successfully provision an Autonomous Database of *Oracle Database@Google 
   ```bash
   gcloud compute ssh --project $VM_PROJECT --zone $VM_ZONE $VM_NAME --command="sqlplus admin/$TF_VAR_admin_password@'$CONNSTR'"
   ```
-<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oracle-quickstart/terraform-oci-multicloud-gcp)</walkthrough-footnote>
+<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oci-landing-zones/terraform-oci-multicloud-google)</walkthrough-footnote>
 
 ## Congratulations
 You've successfully complete the tutorial by querying the Autonomous Database from the client VM with SQLPlus.
 <walkthrough-conclusion-trophy></walkthrough-conclusion-trophy>
 
 ### What's next:
-- **Continue with [RAG Chatbot engine](https://github.com/oracle-quickstart/terraform-oci-multicloud-gcp/blob/main/docs/tutorials/adbs-rag-chatbot/README_RAG.md)**: Use the Autonomous Database you've just provisioned as vector database for building a RAG Chatbot engine.
+- **Continue with [RAG Chatbot engine](https://github.com/oci-landing-zones/terraform-oci-multicloud-google/blob/main/docs/tutorials/adbs-rag-chatbot/README_RAG.md)**: Use the Autonomous Database you've just provisioned as vector database for building a RAG Chatbot engine.
 - **Don't forget to clean up**: Run the following command to cleanup the environment when you're done with all the related tutorials.
     ```bash
     terraform destroy
     ```
-- **Explore more**: See the [OCI Multicloud Landing Zone for Google Cloud](https://github.com/oracle-quickstart/terraform-oci-multicloud-gcp) for more Terraform modules, templates, examples, and tutorials for Oracle Database @ Google.
+- **Explore more**: See the [OCI Multicloud Landing Zone for Google Cloud](https://github.com/oci-landing-zones/terraform-oci-multicloud-google) for more Terraform modules, templates, examples, and tutorials for Oracle Database @ Google.
 
-<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oracle-quickstart/terraform-oci-multicloud-gcp)</walkthrough-footnote>
+<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oci-landing-zones/terraform-oci-multicloud-google)</walkthrough-footnote>
 
 <walkthrough-footnote></walkthrough-footnote>

@@ -4,7 +4,7 @@ This is an add-on template for provision client subnet and Ubuntu VM with pre-in
 ## Example
 ```tf
 module "oradb-client" {
-  # source = "github.com/oracle-quickstart/terraform-oci-multicloud-gcp//templates/oradb-client"
+  # source = "github.com/oci-landing-zones/terraform-oci-multicloud-google//templates/oradb-client"
   source = "../../templates/oradb-client"
   project = local.project
   location = local.location

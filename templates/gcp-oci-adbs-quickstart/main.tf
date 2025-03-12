@@ -3,7 +3,7 @@ provider "google" {
   region  = var.location
   default_labels = {
     tf-module = "gcp-oci-adbs-quickstart"
-    tf-source = "terraform-oci-multicloud-gcp"
+    tf-source = "terraform-oci-multicloud-google"
   }
 }
 

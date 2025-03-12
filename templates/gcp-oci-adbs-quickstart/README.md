@@ -5,11 +5,11 @@ This is a quick-start template for provision an Autonomous Database @ Google Clo
 ![gcp-oci-adbs-quickstart](../../images/gcp-oci-adbs-quickstart.png)
 
 ## Example
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?&ephemeral=false&cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Foracle-quickstart%2Fterraform-oci-multicloud-gcp&cloudshell_git_branch=main&cloudshell_open_in_editor=.%2Fexamples%2Fadbs-minimal%2Fmain.tf&cloudshell_workspace=.&cloudshell_tutorial=.%2Fdocs%2Ftutorials%2Fadbs-terraform%2FREADME.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?&ephemeral=false&cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Foci-landing-zones%2Fterraform-oci-multicloud-google&cloudshell_git_branch=main&cloudshell_open_in_editor=.%2Fexamples%2Fadbs-minimal%2Fmain.tf&cloudshell_workspace=.&cloudshell_tutorial=.%2Fdocs%2Ftutorials%2Fadbs-terraform%2FREADME.md)
 
 ```tf
 module "gcp-oci-adbs-quickstart" {
-  # source = "github.com/oracle-quickstart/terraform-oci-multicloud-gcp//templates/gcp-oci-adbs-quickstart"
+  # source = "github.com/oci-landing-zones/terraform-oci-multicloud-google//templates/gcp-oci-adbs-quickstart"
   source = "../../templates/gcp-oci-adbs-quickstart"
 
   project = "example"
