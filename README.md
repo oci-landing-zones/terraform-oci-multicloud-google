@@ -4,9 +4,7 @@
 
 ## Overview
 
-A repository contains a collection of [terraform modules](https://developer.hashicorp.com/terraform/language/modules) and templates that helps an Google Cloud administrator configure an Google Cloud environment for Oracle Database@Google and provision database related components in Google Cloud.
-
-A user can apply the terraform plans from any computer that has connectivity to both Google Cloud and OCI.
+A collection of [terraform modules](https://developer.hashicorp.com/terraform/language/modules), templates and tutorials that helps you provision Oracle Database@Google Cloud and related components via Infrastructure as Code (IaC).
 
 ## Prerequisites
 
