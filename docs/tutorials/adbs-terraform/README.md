@@ -245,4 +245,3 @@ You've successfully complete the tutorial by querying the Autonomous Database fr
     terraform destroy
     ```
 - **Explore more**: See the [OCI Multicloud Landing Zone for Google Cloud](https://github.com/oci-landing-zones/terraform-oci-multicloud-google) for more Terraform modules, templates, examples, and tutorials for Oracle Database @ Google.
-
