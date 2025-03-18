@@ -3,6 +3,6 @@ provider "google" {
   project = var.project
   default_labels = {
     tf-module = "oradb-client"
-    tf-source = "terraform-oci-multicloud-gcp"
+    tf-source = "terraform-oci-multicloud-google"
   }
 }

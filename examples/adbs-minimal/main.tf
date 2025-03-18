@@ -5,7 +5,7 @@ locals {
 }
 
 module "gcp-oci-adbs-quickstart" {
-  # source = "github.com/oracle-quickstart/terraform-oci-multicloud-gcp//templates/gcp-oci-adbs-quickstart"
+  # source = "github.com/oci-landing-zones/terraform-oci-multicloud-google//templates/gcp-oci-adbs-quickstart"
   source = "../../templates/gcp-oci-adbs-quickstart"
   
   project = local.project
