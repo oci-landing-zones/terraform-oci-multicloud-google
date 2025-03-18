@@ -182,16 +182,22 @@ You've successfully provision an Autonomous Database of *Oracle Database@Google 
 
 ### Make use of the Terraform output
 - You can export the Terraform outputs as environment variables by using `terraform output` and `jq`.
-- Run the following commands in cloud shell
   ```sh
   export VM_PROJECT=$(terraform output -json client_vm | jq -r '.project')
   export VM_ZONE=$(terraform output -json client_vm | jq -r '.zone')
   export VM_NAME=$(terraform output -json client_vm | jq -r '.name')
+  export LOCATION=$(terraform output -raw location)
   export CONNSTR=$(terraform output -raw connstr)
+  export DBID=$(terraform output -raw adbs_dbid)
+  ```
+- Check your environment variables as below.
+  ```sh
+  echo LOCATION = $LOCATION
+  echo DBID = $DBID
+  echo CONNSTR = $CONNSTR
   echo VM_PROJECT = $VM_PROJECT
   echo VM_ZONE = $VM_ZONE
   echo VM_NAME = $VM_NAME
-  echo CONNSTR = $CONNSTR
   ```
 <walkthrough-footnote></walkthrough-footnote>
 
@@ -214,8 +220,17 @@ You've successfully provision an Autonomous Database of *Oracle Database@Google 
 
 ### Connect SQLPlus at the client VM
 - Alternatively, you can connect to sqlplus at the client VM directly for any other query.
-  ```bash
+  ```sh
   gcloud compute ssh --project $VM_PROJECT --zone $VM_ZONE $VM_NAME --command="sqlplus admin/$TF_VAR_admin_password@'$CONNSTR'"
+  ```
+<walkthrough-footnote></walkthrough-footnote>
+
+### Prepare the Wallet
+- If you prefer to [connect with Wallet (mTLS)](https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/adbsb/connect-sqlplus.html), you can prepare the wallet in the client VM using `gcloud` as below.
+  ```sh
+  gcloud oracle-database autonomous-databases generate-wallet "projects/$VM_PROJECT/locations/$LOCATION/autonomousDatabases/$DBID" --location=$LOCATION --password=$TF_VAR_admin_password --project=$VM_PROJECT --format=json | jq -r '.archiveContent' | sed -e 's/-/+/g' -e 's/_/\//g' | base64 -d > Wallet_$DBID.zip
+  gcloud compute scp Wallet_$DBID.zip $VM_NAME:~/ --project $VM_PROJECT --zone $VM_ZONE
+  rm Wallet_$DBID.zip
   ```
 <walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oci-landing-zones/terraform-oci-multicloud-google)</walkthrough-footnote>
 
@@ -231,6 +246,3 @@ You've successfully complete the tutorial by querying the Autonomous Database fr
     ```
 - **Explore more**: See the [OCI Multicloud Landing Zone for Google Cloud](https://github.com/oci-landing-zones/terraform-oci-multicloud-google) for more Terraform modules, templates, examples, and tutorials for Oracle Database @ Google.
 
-<walkthrough-footnote>[OCI Multicloud Landing Zone for Google Cloud](https://github.com/oci-landing-zones/terraform-oci-multicloud-google)</walkthrough-footnote>
-
-<walkthrough-footnote></walkthrough-footnote>
