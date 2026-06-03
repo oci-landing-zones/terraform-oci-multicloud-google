@@ -1,0 +1,156 @@
+#-------------------------------------------------------------------------------------------------------------------------------------------
+# 1. Rename this file to <project-name>.auto.tfvars, where <project-name> is a name of your choice.
+# 2. Provide values for "GCP Connectivity Variables".
+# 3. Replace <REPLACE-BY-*> placeholders with actual values.
+# 4. Provide the admin password via TF_VAR_gcp_autonomous_databases_admin_passwords, not in this file:
+#      export TF_VAR_gcp_autonomous_databases_admin_passwords='{"PRIMARY":"<password>"}'
+#-------------------------------------------------------------------------------------------------------------------------------------------
+
+#---------------------------------------
+# GCP Connectivity Variables
+#---------------------------------------
+
+project_id = "<REPLACE-BY-GCP-PROJECT-ID>"
+location   = "<REPLACE-BY-GCP-REGION>" # E.g., europe-west2.
+
+# Optional. Set to "<region>-<zone>-r2" to pin the GCP Oracle zone.
+# When null, the Google provider/API may select it.
+gcp_oracle_zone = null
+
+#---------------------------------------
+# Module Controls
+#---------------------------------------
+
+odb_networking_module_name = "oracle-database-networking-at-gcp"
+
+adb_module_name   = "oracle-autonomous-database-at-gcp"
+adb_enable_output = true
+
+#---------------------------------------
+# Module Defaults
+#---------------------------------------
+
+default_deletion_protection = false
+
+default_labels = {
+  managed_by = "terraform"
+  workload   = "oracle_database_at_gcp"
+  component  = "adb_vision"
+  env        = "dev"
+}
+
+#---------------------------------------
+# ODB Networks
+#---------------------------------------
+
+gcp_odb_networks_configuration = {
+  PRIMARY = {
+    odb_network_id  = "vision-adb-odb-network"
+    network         = "projects/<REPLACE-BY-GCP-PROJECT-ID>/global/networks/<REPLACE-BY-VPC-NAME>"
+    project_id      = null
+    location        = null
+    gcp_oracle_zone = null
+
+    labels = {
+      role = "primary"
+    }
+
+    deletion_protection = false
+
+    timeouts = {
+      create = "90m"
+      update = "60m"
+      delete = "60m"
+    }
+  }
+}
+
+#---------------------------------------
+# ODB Subnets
+#---------------------------------------
+
+gcp_odb_subnets_configuration = {
+  CLIENT = {
+    odb_subnet_id = "vision-adb-client-subnet"
+    odb_network   = "PRIMARY"
+    cidr_range    = "192.168.1.0/24"
+    purpose       = "CLIENT_SUBNET"
+    project_id    = null
+    location      = null
+
+    labels = {
+      role = "client"
+    }
+
+    deletion_protection = false
+
+    timeouts = {
+      create = "90m"
+      update = "60m"
+      delete = "60m"
+    }
+  }
+}
+
+#---------------------------------------
+# Autonomous Databases
+#---------------------------------------
+
+gcp_autonomous_databases_configuration = {
+  PRIMARY = {
+    autonomous_database_id = "vision-adb"
+    display_name           = "vision-adb"
+    database               = "visionadb"
+
+    project_id          = null
+    location            = null
+    deletion_protection = false
+
+    labels = {
+      role = "primary"
+    }
+
+    odb_network = "PRIMARY"
+    odb_subnet  = "CLIENT"
+
+    # Full resource-name alternative: replace the dependency keys above with these values.
+    # odb_network = "projects/<project>/locations/<region>/odbNetworks/<network>"
+    # odb_subnet  = "projects/<project>/locations/<region>/odbNetworks/<network>/odbSubnets/<client-subnet>"
+
+    timeouts = {
+      create = "240m"
+      update = "120m"
+      delete = "120m"
+    }
+
+    properties = {
+      db_workload          = "OLTP"
+      license_type         = "LICENSE_INCLUDED"
+      compute_count        = 2
+      data_storage_size_tb = 1
+      db_version           = "23ai"
+
+      character_set   = "AL32UTF8"
+      n_character_set = "AL16UTF16"
+
+      is_auto_scaling_enabled         = true
+      is_storage_auto_scaling_enabled = false
+      backup_retention_period_days    = 60
+      maintenance_schedule_type       = "REGULAR"
+      mtls_connection_required        = false
+
+      # Optional alternatives and advanced provider fields:
+      # cpu_core_count            = 2
+      # data_storage_size_gb      = 1024
+      # db_edition                = "ENTERPRISE_EDITION"
+      # private_endpoint_ip       = "192.168.1.10"
+      # private_endpoint_label    = "vision-adb"
+      # secret_id                 = "<REPLACE-BY-SECRET-ID>"
+      # vault_id                  = "<REPLACE-BY-VAULT-ID>"
+
+      customer_contacts = [
+        { email = "dba@example.com" }
+      ]
+    }
+  }
+}
