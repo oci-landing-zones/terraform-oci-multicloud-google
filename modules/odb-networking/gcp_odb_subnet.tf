@@ -94,6 +94,7 @@ resource "google_oracle_database_odb_subnet" "these" {
 
   labels              = merge(local.module_tag, local.default_labels, each.value.labels)
   deletion_protection = each.value.deletion_protection != null ? each.value.deletion_protection : var.default_deletion_protection
+  deletion_policy     = each.value.deletion_policy != null ? each.value.deletion_policy : var.default_deletion_policy
 
   dynamic "timeouts" {
     for_each = each.value.timeouts == null ? [] : [each.value.timeouts]

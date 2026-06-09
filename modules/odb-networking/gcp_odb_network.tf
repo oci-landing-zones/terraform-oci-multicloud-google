@@ -4,13 +4,15 @@
 locals {
   gcp_odb_networks_output = {
     for key, network in google_oracle_database_odb_network.these : key => {
-      id             = network.id
-      name           = network.name
-      odb_network_id = network.odb_network_id
-      location       = network.location
-      project        = network.project
-      state          = network.state
-      entitlement_id = try(network.entitlement_id, null)
+      id              = network.id
+      name            = network.name
+      odb_network_id  = network.odb_network_id
+      network         = network.network
+      location        = network.location
+      project         = network.project
+      gcp_oracle_zone = network.gcp_oracle_zone
+      state           = network.state
+      entitlement_id  = try(network.entitlement_id, null)
     }
   }
 }
@@ -26,6 +28,7 @@ resource "google_oracle_database_odb_network" "these" {
   gcp_oracle_zone     = each.value.gcp_oracle_zone != null ? each.value.gcp_oracle_zone : var.default_gcp_oracle_zone
   labels              = merge(local.module_tag, local.default_labels, each.value.labels)
   deletion_protection = each.value.deletion_protection != null ? each.value.deletion_protection : var.default_deletion_protection
+  deletion_policy     = each.value.deletion_policy != null ? each.value.deletion_policy : var.default_deletion_policy
 
   dynamic "timeouts" {
     for_each = each.value.timeouts == null ? [] : [each.value.timeouts]

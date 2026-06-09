@@ -76,6 +76,18 @@ variable "default_deletion_protection" {
   nullable    = false
 }
 
+variable "default_deletion_policy" {
+  description = "Default deletion policy used by resources that support deletion_policy. PREVENT blocks Terraform destroys unless overridden."
+  type        = string
+  default     = "PREVENT"
+  nullable    = false
+
+  validation {
+    condition     = contains(["DELETE", "PREVENT", "ABANDON"], var.default_deletion_policy)
+    error_message = "default_deletion_policy must be one of DELETE, PREVENT, or ABANDON."
+  }
+}
+
 variable "gcp_odb_networks_configuration" {
   description = "Map of Oracle Database@Google Cloud ODB networks to create."
   type = map(object({
@@ -86,6 +98,7 @@ variable "gcp_odb_networks_configuration" {
     gcp_oracle_zone     = optional(string)
     labels              = optional(map(string), {})
     deletion_protection = optional(bool)
+    deletion_policy     = optional(string)
     timeouts = optional(object({
       create = optional(string)
       update = optional(string)
@@ -117,6 +130,14 @@ variable "gcp_odb_networks_configuration" {
       can(regex("^projects/[^/[:space:]]+/global/networks/[a-z]([a-z0-9-]{0,61}[a-z0-9])?$", network.network))
     ])
     error_message = "ODB network network values must use projects/{project}/global/networks/{network} format, where network is a lowercase Google Cloud VPC network ID segment."
+  }
+
+  validation {
+    condition = alltrue([
+      for network in var.gcp_odb_networks_configuration :
+      try((network.project_id != null ? network.project_id : var.default_project_id) == null ? true : (network.project_id != null ? network.project_id : var.default_project_id) == split("/", network.network)[1], true)
+    ])
+    error_message = "ODB network project_id or default_project_id must match the project segment in network when a resource project is known."
   }
 
   validation {
@@ -153,6 +174,14 @@ variable "gcp_odb_networks_configuration" {
     ])
     error_message = "ODB network gcp_oracle_zone values must be null or non-empty strings without leading, trailing, or internal whitespace."
   }
+
+  validation {
+    condition = alltrue([
+      for network in var.gcp_odb_networks_configuration :
+      network.deletion_policy == null ? true : contains(["DELETE", "PREVENT", "ABANDON"], network.deletion_policy)
+    ])
+    error_message = "ODB network deletion_policy values must be null or one of DELETE, PREVENT, or ABANDON."
+  }
 }
 
 variable "gcp_odb_subnets_configuration" {
@@ -166,6 +195,7 @@ variable "gcp_odb_subnets_configuration" {
     project_id          = optional(string)
     labels              = optional(map(string), {})
     deletion_protection = optional(bool)
+    deletion_policy     = optional(string)
     timeouts = optional(object({
       create = optional(string)
       update = optional(string)
@@ -197,6 +227,29 @@ variable "gcp_odb_subnets_configuration" {
       try(cidrhost(subnet.cidr_range, 0) == split("/", subnet.cidr_range)[0], false)
     ])
     error_message = "ODB subnet cidr_range values must be valid canonical CIDR blocks whose address is the network address."
+  }
+
+  validation {
+    condition = alltrue([
+      for subnet in var.gcp_odb_subnets_configuration :
+      try(
+        (
+          tonumber(split(".", split("/", subnet.cidr_range)[0])[0]) == 10 &&
+          tonumber(split("/", subnet.cidr_range)[1]) >= 8
+          ) || (
+          tonumber(split(".", split("/", subnet.cidr_range)[0])[0]) == 172 &&
+          tonumber(split(".", split("/", subnet.cidr_range)[0])[1]) >= 16 &&
+          tonumber(split(".", split("/", subnet.cidr_range)[0])[1]) <= 31 &&
+          tonumber(split("/", subnet.cidr_range)[1]) >= 12
+          ) || (
+          tonumber(split(".", split("/", subnet.cidr_range)[0])[0]) == 192 &&
+          tonumber(split(".", split("/", subnet.cidr_range)[0])[1]) == 168 &&
+          tonumber(split("/", subnet.cidr_range)[1]) >= 16
+        ),
+        false
+      )
+    ])
+    error_message = "ODB subnet cidr_range values must be RFC1918 private IPv4 CIDR blocks and must not use Oracle-reserved 100.64.0.0/10 space."
   }
 
   validation {
@@ -259,5 +312,13 @@ variable "gcp_odb_subnets_configuration" {
       subnet.location == null ? true : (trimspace(subnet.location) != "" && subnet.location == trimspace(subnet.location) && !can(regex("[[:space:]]", subnet.location)))
     ])
     error_message = "ODB subnet location values must be null or non-empty strings without leading, trailing, or internal whitespace."
+  }
+
+  validation {
+    condition = alltrue([
+      for subnet in var.gcp_odb_subnets_configuration :
+      subnet.deletion_policy == null ? true : contains(["DELETE", "PREVENT", "ABANDON"], subnet.deletion_policy)
+    ])
+    error_message = "ODB subnet deletion_policy values must be null or one of DELETE, PREVENT, or ABANDON."
   }
 }

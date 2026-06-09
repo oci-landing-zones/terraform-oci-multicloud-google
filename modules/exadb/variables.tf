@@ -81,8 +81,8 @@ variable "default_gcp_oracle_zone" {
   default     = null
 
   validation {
-    condition     = var.default_gcp_oracle_zone == null ? true : trimspace(var.default_gcp_oracle_zone) != ""
-    error_message = "default_gcp_oracle_zone must be null or a non-empty GCP Oracle zone."
+    condition     = var.default_gcp_oracle_zone == null ? true : (trimspace(var.default_gcp_oracle_zone) != "" && var.default_gcp_oracle_zone == trimspace(var.default_gcp_oracle_zone) && !can(regex("[[:space:]]", var.default_gcp_oracle_zone)))
+    error_message = "default_gcp_oracle_zone must be null or a non-empty GCP Oracle zone without leading, trailing, or internal whitespace."
   }
 }
 
@@ -107,6 +107,18 @@ variable "default_deletion_protection" {
   type        = bool
   default     = true
   nullable    = false
+}
+
+variable "default_deletion_policy" {
+  description = "Default deletion policy used by resources that support deletion_policy. PREVENT blocks Terraform destroys unless overridden."
+  type        = string
+  default     = "PREVENT"
+  nullable    = false
+
+  validation {
+    condition     = contains(["DELETE", "PREVENT", "ABANDON"], var.default_deletion_policy)
+    error_message = "default_deletion_policy must be one of DELETE, PREVENT, or ABANDON."
+  }
 }
 
 variable "default_cloud_exadata_maintenance_window" {
@@ -154,7 +166,8 @@ variable "default_cloud_exadata_maintenance_window" {
 variable "gcp_odb_networks_dependency" {
   description = "Externally managed ODB networks this module may depend on, keyed by logical name."
   type = map(object({
-    id = string
+    id              = string
+    gcp_oracle_zone = optional(string)
   }))
   default  = {}
   nullable = false
@@ -173,6 +186,14 @@ variable "gcp_odb_networks_dependency" {
       can(regex("^projects/[^/[:space:]]+/locations/[^/[:space:]]+/odbNetworks/[a-z]([a-z0-9-]{0,61}[a-z0-9])?$", network.id))
     ])
     error_message = "ODB network dependency id values must use projects/{project}/locations/{location}/odbNetworks/{odb_network} format."
+  }
+
+  validation {
+    condition = alltrue([
+      for network in values(var.gcp_odb_networks_dependency) :
+      network.gcp_oracle_zone == null ? true : (trimspace(network.gcp_oracle_zone) != "" && network.gcp_oracle_zone == trimspace(network.gcp_oracle_zone) && !can(regex("[[:space:]]", network.gcp_oracle_zone)))
+    ])
+    error_message = "ODB network dependency gcp_oracle_zone values must be null or non-empty strings without leading, trailing, or internal whitespace."
   }
 }
 
@@ -213,7 +234,8 @@ variable "gcp_odb_subnets_dependency" {
 variable "gcp_cloud_exadata_infrastructures_dependency" {
   description = "Externally managed Cloud Exadata Infrastructures this module may depend on, keyed by logical name."
   type = map(object({
-    id = string
+    id              = string
+    gcp_oracle_zone = optional(string)
   }))
   default  = {}
   nullable = false
@@ -233,6 +255,14 @@ variable "gcp_cloud_exadata_infrastructures_dependency" {
     ])
     error_message = "Cloud Exadata Infrastructure dependency id values must use projects/{project}/locations/{location}/cloudExadataInfrastructures/{infrastructure} format."
   }
+
+  validation {
+    condition = alltrue([
+      for infrastructure in values(var.gcp_cloud_exadata_infrastructures_dependency) :
+      infrastructure.gcp_oracle_zone == null ? true : (trimspace(infrastructure.gcp_oracle_zone) != "" && infrastructure.gcp_oracle_zone == trimspace(infrastructure.gcp_oracle_zone) && !can(regex("[[:space:]]", infrastructure.gcp_oracle_zone)))
+    ])
+    error_message = "Cloud Exadata Infrastructure dependency gcp_oracle_zone values must be null or non-empty strings without leading, trailing, or internal whitespace."
+  }
 }
 
 variable "gcp_cloud_exadata_infrastructures_configuration" {
@@ -245,6 +275,7 @@ variable "gcp_cloud_exadata_infrastructures_configuration" {
     gcp_oracle_zone                 = optional(string)
     labels                          = optional(map(string), {})
     deletion_protection             = optional(bool)
+    deletion_policy                 = optional(string)
     timeouts = optional(object({
       create = optional(string)
       update = optional(string)
@@ -348,9 +379,17 @@ variable "gcp_cloud_exadata_infrastructures_configuration" {
   validation {
     condition = alltrue([
       for infrastructure in var.gcp_cloud_exadata_infrastructures_configuration :
-      infrastructure.gcp_oracle_zone == null ? true : trimspace(infrastructure.gcp_oracle_zone) != ""
+      infrastructure.gcp_oracle_zone == null ? true : (trimspace(infrastructure.gcp_oracle_zone) != "" && infrastructure.gcp_oracle_zone == trimspace(infrastructure.gcp_oracle_zone) && !can(regex("[[:space:]]", infrastructure.gcp_oracle_zone)))
     ])
-    error_message = "Cloud Exadata Infrastructure gcp_oracle_zone values must be null or non-empty strings."
+    error_message = "Cloud Exadata Infrastructure gcp_oracle_zone values must be null or non-empty strings without leading, trailing, or internal whitespace."
+  }
+
+  validation {
+    condition = alltrue([
+      for infrastructure in var.gcp_cloud_exadata_infrastructures_configuration :
+      infrastructure.deletion_policy == null ? true : contains(["DELETE", "PREVENT", "ABANDON"], infrastructure.deletion_policy)
+    ])
+    error_message = "Cloud Exadata Infrastructure deletion_policy values must be null or one of DELETE, PREVENT, or ABANDON."
   }
 
   validation {
@@ -392,6 +431,7 @@ variable "gcp_cloud_vm_clusters_configuration" {
     project_id          = optional(string)
     labels              = optional(map(string), {})
     deletion_protection = optional(bool)
+    deletion_policy     = optional(string)
     timeouts = optional(object({
       create = optional(string)
       update = optional(string)
@@ -516,6 +556,14 @@ variable "gcp_cloud_vm_clusters_configuration" {
       cluster.location == null ? true : (trimspace(cluster.location) != "" && cluster.location == trimspace(cluster.location) && !can(regex("[[:space:]]", cluster.location)))
     ])
     error_message = "Cloud VM cluster location values must be null or non-empty strings without leading, trailing, or internal whitespace."
+  }
+
+  validation {
+    condition = alltrue([
+      for cluster in var.gcp_cloud_vm_clusters_configuration :
+      cluster.deletion_policy == null ? true : contains(["DELETE", "PREVENT", "ABANDON"], cluster.deletion_policy)
+    ])
+    error_message = "Cloud VM cluster deletion_policy values must be null or one of DELETE, PREVENT, or ABANDON."
   }
 
   validation {

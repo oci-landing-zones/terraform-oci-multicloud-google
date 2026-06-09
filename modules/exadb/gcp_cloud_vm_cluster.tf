@@ -50,6 +50,24 @@ locals {
     )
   }
 
+  cloud_vm_cluster_exadata_infrastructure_zones = {
+    for key, cluster in var.gcp_cloud_vm_clusters_configuration : key =>
+    cluster.exadata_infrastructure == null ? null : (
+      can(regex(local.cloud_exadata_infrastructure_resource_name_pattern, cluster.exadata_infrastructure)) ? null : (
+        contains(keys(var.gcp_cloud_exadata_infrastructures_configuration), cluster.exadata_infrastructure) ? (
+          var.gcp_cloud_exadata_infrastructures_configuration[cluster.exadata_infrastructure].gcp_oracle_zone != null ? var.gcp_cloud_exadata_infrastructures_configuration[cluster.exadata_infrastructure].gcp_oracle_zone : var.default_gcp_oracle_zone
+        ) : try(local.gcp_cloud_exadata_infrastructures_dependency[cluster.exadata_infrastructure].gcp_oracle_zone, null)
+      )
+    )
+  }
+
+  cloud_vm_cluster_odb_network_zones = {
+    for key, cluster in var.gcp_cloud_vm_clusters_configuration : key =>
+    cluster.odb_network == null ? null : (
+      can(regex(local.odb_network_resource_name_pattern, cluster.odb_network)) ? null : try(local.gcp_odb_networks_dependency[cluster.odb_network].gcp_oracle_zone, null)
+    )
+  }
+
   odb_subnet_dependency_ids_with_purpose = distinct([
     for subnet in values(local.gcp_odb_subnets_dependency) : subnet.id
     if try(subnet.id, null) != null && try(subnet.purpose, null) != null
@@ -126,6 +144,10 @@ locals {
       location                   = cluster.location
       project                    = cluster.project
       gcp_oracle_zone            = cluster.gcp_oracle_zone
+      exadata_infrastructure     = cluster.exadata_infrastructure
+      odb_network                = cluster.odb_network
+      odb_subnet                 = cluster.odb_subnet
+      backup_odb_subnet          = cluster.backup_odb_subnet
       ocid                       = try(cluster.properties[0].ocid, null)
       state                      = try(cluster.properties[0].state, null)
       shape                      = try(cluster.properties[0].shape, null)
@@ -175,6 +197,7 @@ resource "google_oracle_database_cloud_vm_cluster" "these" {
 
   labels              = merge(local.module_tag, local.default_labels, each.value.labels)
   deletion_protection = each.value.deletion_protection != null ? each.value.deletion_protection : var.default_deletion_protection
+  deletion_policy     = each.value.deletion_policy != null ? each.value.deletion_policy : var.default_deletion_policy
 
   properties {
     license_type             = each.value.properties.license_type
@@ -274,6 +297,15 @@ resource "google_oracle_database_cloud_vm_cluster" "these" {
         local.cloud_vm_cluster_locations[each.key] == local.cloud_vm_cluster_exadata_infrastructure_locations[each.key]
       )
       error_message = "Each Cloud VM cluster must be in the same location as the selected Exadata Infrastructure."
+    }
+
+    precondition {
+      condition = (
+        local.cloud_vm_cluster_exadata_infrastructure_zones[each.key] == null ||
+        local.cloud_vm_cluster_odb_network_zones[each.key] == null ||
+        local.cloud_vm_cluster_exadata_infrastructure_zones[each.key] == local.cloud_vm_cluster_odb_network_zones[each.key]
+      )
+      error_message = "Each Cloud VM cluster must use an Exadata Infrastructure and ODB network in the same GCP Oracle zone when both zones are known."
     }
 
     precondition {

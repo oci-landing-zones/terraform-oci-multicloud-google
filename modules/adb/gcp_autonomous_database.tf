@@ -62,8 +62,12 @@ locals {
     for key, adb in google_oracle_database_autonomous_database.these : key => {
       id                                    = adb.id
       name                                  = adb.name
+      database                              = adb.database
+      display_name                          = adb.display_name
       location                              = adb.location
       project                               = adb.project
+      odb_network                           = adb.odb_network
+      odb_subnet                            = adb.odb_subnet
       ocid                                  = try(adb.properties[0].ocid, null)
       state                                 = try(adb.properties[0].state, null)
       oci_url                               = try(adb.properties[0].oci_url, null)
@@ -104,6 +108,7 @@ resource "google_oracle_database_autonomous_database" "these" {
 
   labels              = merge(local.module_tag, local.default_labels, each.value.labels)
   deletion_protection = each.value.deletion_protection != null ? each.value.deletion_protection : var.default_deletion_protection
+  deletion_policy     = each.value.deletion_policy != null ? each.value.deletion_policy : var.default_deletion_policy
 
   dynamic "properties" {
     for_each = each.value.properties == null ? [] : [each.value.properties]

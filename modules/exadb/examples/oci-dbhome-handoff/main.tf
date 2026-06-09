@@ -2,9 +2,11 @@
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 locals {
-  oci_ocid_family_pattern              = "^ocid1[.]"
-  cloud_vm_cluster_ocid_family_pattern = "^ocid1[.]cloudvmcluster[.]"
-  cloud_vm_cluster_ocid_pattern        = "^ocid1[.]cloudvmcluster[.][^./[:space:]]+[.][^./[:space:]]+[.][^/[:space:]]+$"
+  oci_ocid_family_pattern            = "^ocid1[.]"
+  cloud_vm_cluster_ocid_pattern      = "^ocid1[.]cloudvmcluster[.][^./[:space:]]+[.][^./[:space:]]+[.][^/[:space:]]+$"
+  cloud_db_homes_configuration_input = var.cloud_db_homes_configuration == null ? {} : nonsensitive(var.cloud_db_homes_configuration)
+  databases_configuration            = var.databases_configuration
+  pluggable_databases_configuration  = var.pluggable_databases_configuration
 
   gcp_cloud_vm_clusters_dependency = {
     for key, cluster in var.gcp_cloud_vm_clusters_dependency : key => {
@@ -16,7 +18,7 @@ locals {
   }
 
   db_home_vm_cluster_raw_refs = {
-    for key, db_home in coalesce(var.cloud_db_homes_configuration, {}) : key => (
+    for key, db_home in local.cloud_db_homes_configuration_input : key => (
       try(db_home.vm_cluster_id, null) == null ? "" : tostring(db_home.vm_cluster_id)
     )
   }
@@ -42,20 +44,22 @@ locals {
     )
   }
 
-  cloud_db_homes_configuration = {
-    for key, db_home in coalesce(var.cloud_db_homes_configuration, {}) : key => merge(
+  cloud_db_homes_configuration_resolved = {
+    for key, db_home in local.cloud_db_homes_configuration_input : key => merge(
       db_home,
       {
         vm_cluster_id = try(local.db_home_vm_cluster_ids[key], null)
       }
     )
   }
+
+  cloud_db_homes_configuration = var.cloud_db_homes_configuration == null ? {} : sensitive(local.cloud_db_homes_configuration_resolved)
 }
 
 resource "terraform_data" "validate_handoff" {
   lifecycle {
     precondition {
-      condition     = length(local.db_home_vm_cluster_refs) == length(keys(coalesce(var.cloud_db_homes_configuration, {})))
+      condition     = length(local.db_home_vm_cluster_refs) == length(keys(local.cloud_db_homes_configuration_input))
       error_message = "Each cloud_db_homes_configuration entry must set vm_cluster_id to either an OCI Cloud VM Cluster OCID or a key from gcp_cloud_vm_clusters_dependency."
     }
 
@@ -111,6 +115,6 @@ module "oci_exadata_database" {
   default_defined_tags              = var.default_defined_tags
   default_freeform_tags             = var.default_freeform_tags
   cloud_db_homes_configuration      = local.cloud_db_homes_configuration
-  databases_configuration           = var.databases_configuration
-  pluggable_databases_configuration = var.pluggable_databases_configuration
+  databases_configuration           = local.databases_configuration
+  pluggable_databases_configuration = local.pluggable_databases_configuration
 }

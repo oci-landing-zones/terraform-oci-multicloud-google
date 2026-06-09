@@ -9,6 +9,7 @@ locals {
       cloud_exadata_infrastructure_id    = infrastructure.cloud_exadata_infrastructure_id
       location                           = infrastructure.location
       project                            = infrastructure.project
+      gcp_oracle_zone                    = infrastructure.gcp_oracle_zone
       entitlement_id                     = try(infrastructure.entitlement_id, null)
       ocid                               = try(infrastructure.properties[0].ocid, null)
       state                              = try(infrastructure.properties[0].state, null)
@@ -46,6 +47,7 @@ resource "google_oracle_database_cloud_exadata_infrastructure" "these" {
   gcp_oracle_zone                 = each.value.gcp_oracle_zone != null ? each.value.gcp_oracle_zone : var.default_gcp_oracle_zone
   labels                          = merge(local.module_tag, local.default_labels, each.value.labels)
   deletion_protection             = each.value.deletion_protection != null ? each.value.deletion_protection : var.default_deletion_protection
+  deletion_policy                 = each.value.deletion_policy != null ? each.value.deletion_policy : var.default_deletion_policy
 
   properties {
     shape                 = each.value.properties.shape

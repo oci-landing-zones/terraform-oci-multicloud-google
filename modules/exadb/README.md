@@ -36,7 +36,7 @@ Before running Terraform against real infrastructure, make sure these pieces are
 * A Google Cloud project enabled for Oracle Database@Google Cloud.
 * Google provider authentication for the Terraform caller.
 * IAM permissions to manage Oracle Database@Google Cloud Exadata resources.
-* Terraform `>= 1.4.0` and HashiCorp Google provider `>= 7.13.0, < 8.0.0`.
+* Terraform `>= 1.4.0` and HashiCorp Google provider `>= 7.35.0, < 8.0.0`.
 * An existing ODB Network plus client and backup ODB Subnets, created by `modules/odb-networking` or an equivalent stack.
 * Oracle Database@Google Cloud entitlement and capacity in the target project and region.
 * RSA SSH public keys for VM Cluster access. Ed25519 keys are rejected by the Oracle Database@Google Cloud VM Cluster API.
@@ -170,7 +170,9 @@ The module returns created resources with the same keys used in the input maps:
 
 Each resource output includes stable identifiers and selected computed attributes exported by the Google provider. Set `enable_output = false` to return `null` from `gcp_cloud_exadata_infrastructures` and `gcp_cloud_vm_clusters`; `module_name` remains available.
 
-The Exadata Infrastructure and VM Cluster outputs include operational fields such as server versions, capacity, Grid Infrastructure version, DB server placement, SCAN details, and OCI URLs. These are intended for validation, handoff to downstream stacks, and troubleshooting after long-running create operations complete.
+The Exadata Infrastructure and VM Cluster outputs include topology fields such as GCP Oracle zone and resolved Exadata/ODB references, plus operational fields such as server versions, capacity, Grid Infrastructure version, DB server placement, SCAN details, and OCI URLs. These are intended for validation, handoff to downstream stacks, and troubleshooting after long-running create operations complete.
+
+`default_deletion_policy` defaults to `PREVENT` for Cloud Exadata Infrastructure and VM Cluster resources. Set a per-resource `deletion_policy` only when a stack intentionally needs `DELETE` or `ABANDON` behavior.
 
 ## <a name="license">License</a>
 

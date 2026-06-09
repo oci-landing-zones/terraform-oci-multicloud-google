@@ -17,7 +17,7 @@ The README covers deployment guidance and examples. This specification focuses o
 
 ## <a name="compatibility">Compatibility</a>
 
-This module requires Terraform `>= 1.4.0` and HashiCorp Google provider `>= 7.13.0, < 8.0.0`.
+This module requires Terraform `>= 1.4.0` and HashiCorp Google provider `>= 7.35.0, < 8.0.0`.
 
 Google Cloud project enablement, Oracle Database@Google Cloud entitlement, IAM permissions, and provider authentication are external prerequisites.
 
@@ -37,6 +37,7 @@ The module accepts these input variables.
 * `default_location`: Default Google Cloud region used by resources when `location` is not set on the resource. If set, it must be non-empty and contain no whitespace.
 * `default_labels`: Default labels merged into all resources. Resource-specific labels win on key collisions. Keys and values must follow Google Cloud label syntax: keys must start with a lowercase letter and contain lowercase letters, numbers, underscores, or hyphens; values may be empty and may contain lowercase letters, numbers, underscores, or hyphens.
 * `default_deletion_protection`: Default deletion protection value. Defaults to `true`.
+* `default_deletion_policy`: Default deletion policy for resources that support `deletion_policy`. Defaults to `PREVENT`. Must be `DELETE`, `PREVENT`, or `ABANDON`.
 * `gcp_odb_networks_dependency`: Externally managed ODB Networks this module may consume by key. Accepts a direct map keyed by logical name.
 * `gcp_odb_subnets_dependency`: Externally managed ODB Subnets this module may consume by key. Accepts a direct map keyed by logical name.
 * `gcp_autonomous_databases_admin_passwords`: Admin passwords for Autonomous Databases, keyed by the same keys as `gcp_autonomous_databases_configuration`. Sensitive. Do not store in committed files — use `TF_VAR_gcp_autonomous_databases_admin_passwords` instead. Each configured database must use either a matching password entry or `properties.secret_id`, but not both, and unknown password keys are rejected when databases are configured. Values must be 12–30 characters, include at least one uppercase letter, one lowercase letter, and one number, and must not contain double quotes or `admin` in any casing.
@@ -67,6 +68,7 @@ Each map value has these attributes:
 * `project_id`: Optional. The Google Cloud project ID. Overrides `default_project_id`. If set, it must be non-empty and contain no whitespace.
 * `labels`: Optional. Labels for the database. Keys and values must follow the same Google Cloud label syntax as `default_labels`.
 * `deletion_protection`: Optional. Whether deletion protection is enabled. Overrides `default_deletion_protection`.
+* `deletion_policy`: Optional. Overrides `default_deletion_policy`. Must be `DELETE`, `PREVENT`, or `ABANDON`.
 * `timeouts`: Optional. Provider timeout overrides for `create`, `update`, and `delete`.
 
 **Networking — ODB Network mode:**
@@ -135,6 +137,7 @@ The module enforces these checks at `terraform plan`, not at apply, to avoid lat
 * **Database name format** — `database`, when set, must match the Google provider rule: starts with a letter, contains only alphanumeric characters, and is at most 30 characters long. Duplicate resource or database names are left to the Google provider/API, matching the OCI module style.
 * **Google label syntax** — `default_labels` and per-resource `labels` are validated for Google Cloud label-compatible keys and values before planning resources. Label keys must start with a lowercase letter. Label values may be empty and may contain lowercase letters, numbers, underscores, or hyphens.
 * **Project and location hygiene** — `default_project_id`, `default_location`, per-resource `project_id`, and per-resource `location` can be omitted, but cannot be whitespace-only strings and cannot contain leading, trailing, or internal whitespace.
+* **Deletion policy enum** — `default_deletion_policy` and per-resource `deletion_policy` must be `DELETE`, `PREVENT`, or `ABANDON`.
 * **Storage size exclusivity** — `data_storage_size_tb` and `data_storage_size_gb` cannot both be set on the same database.
 * **Service-managed fields** — `operations_insights_state` cannot be configured as an input.
 * **Private endpoint IP format** — `private_endpoint_ip` must be a plain IPv4 address, not a CIDR range.
@@ -152,7 +155,7 @@ The module returns these outputs:
 
 Each database output includes:
 
-* Google identifiers: `id`, `name`, `location`, and `project`.
+* Google identifiers and configured topology: `id`, `name`, `database`, `display_name`, `location`, `project`, `odb_network`, and `odb_subnet`.
 * OCI identifiers: `ocid`, `oci_url`, `oci_region`, `oci_tenant`, and `oci_compartment_id`.
 * Connectivity details: `connection_strings`, `connection_urls`, `private_endpoint`, `private_endpoint_ip`, `private_endpoint_label`, and `sql_web_developer_url`.
 * Lifecycle and peer metadata: `state`, `operations_insights_state`, `role`, `peer_autonomous_databases`, `peer_db_ids`, `permission_level`, `is_local_data_guard_enabled`, `local_disaster_recovery_type`, `local_standby_db`, and `disaster_recovery_supported_locations`.

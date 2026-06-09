@@ -16,7 +16,7 @@ Use [SPEC.md](./SPEC.md) for the exact input and output contract.
 ## Requirements
 
 * Terraform `>= 1.4.0`
-* HashiCorp Google provider `>= 7.13.0, < 8.0.0`
+* HashiCorp Google provider `>= 7.35.0, < 8.0.0`
 * A Google Cloud project enabled for Oracle Database@Google Cloud
 * An existing Google Cloud VPC network
 * Oracle Database@Google Cloud entitlement and regional capacity
@@ -59,7 +59,9 @@ Downstream modules should consume `module.odb_networking.gcp_odb_networks` and `
 
 Each subnet `odb_network` must be either a local ODB Network key or a full ODB Network resource name. Bare external ODB Network ID segments are rejected because they are ambiguous with local keys. Logical keys are case-sensitive and must be uppercase to keep local references distinct from lowercase Google resource ID segments.
 
-The module validates provider-sensitive inputs at plan time: project, location, and GCP Oracle zone defaults cannot contain whitespace; labels must use Google Cloud label-compatible syntax; VPC network ID segments must use lowercase Google resource ID syntax; and subnet CIDRs must be canonical network blocks. Duplicate resource IDs are left to the Google provider/API, matching the OCI module style.
+The module validates provider-sensitive inputs at plan time: project, location, and GCP Oracle zone defaults cannot contain whitespace; labels must use Google Cloud label-compatible syntax; VPC network ID segments must use lowercase Google resource ID syntax; ODB Network project settings must match the VPC network project when known; and subnet CIDRs must be canonical RFC1918 private IPv4 network blocks outside Oracle-reserved `100.64.0.0/10` space. Duplicate resource IDs are left to the Google provider/API, matching the OCI module style.
+
+`default_deletion_policy` defaults to `PREVENT` for ODB Network and ODB Subnet resources. Set a per-resource `deletion_policy` only when a stack intentionally needs `DELETE` or `ABANDON` behavior.
 
 ## Output Controls
 

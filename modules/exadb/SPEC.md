@@ -17,7 +17,7 @@ The README covers deployment guidance and examples. This specification focuses o
 
 ## <a name="compatibility">Compatibility</a>
 
-This module requires Terraform `>= 1.4.0` and HashiCorp Google provider `>= 7.13.0, < 8.0.0`.
+This module requires Terraform `>= 1.4.0` and HashiCorp Google provider `>= 7.35.0, < 8.0.0`.
 
 Google Cloud project enablement, Oracle Database@Google Cloud entitlement, IAM permissions, provider authentication, and ODB networking are external prerequisites. The module validates the Terraform-side input contract, but it cannot validate service entitlement or regional capacity before the provider calls the Google API.
 
@@ -36,9 +36,10 @@ The module accepts these input variables.
 * `ssh_public_keys_file_path`: Optional path to a file containing RSA OpenSSH public keys for VM Cluster access. The file must contain one public key per non-empty line. When set, it replaces `properties.ssh_public_keys` for every VM Cluster in the module call.
 * `default_project_id`: Default Google Cloud project ID used by resources when `project_id` is not set on the resource. Must be `null` or non-empty with no whitespace.
 * `default_location`: Default Google Cloud region used by resources when `location` is not set on the resource. Must be `null` or non-empty with no whitespace.
-* `default_gcp_oracle_zone`: Default GCP Oracle zone used by resources that support it. Must be `null` or non-empty.
+* `default_gcp_oracle_zone`: Default GCP Oracle zone used by resources that support it. Must be `null` or non-empty with no whitespace.
 * `default_labels`: Default labels merged into all resources. Resource-specific labels win on key collisions. Keys and values must satisfy the module label validation.
 * `default_deletion_protection`: Default deletion protection value for resources that support `deletion_protection`. Defaults to `true`.
+* `default_deletion_policy`: Default deletion policy for resources that support `deletion_policy`. Defaults to `PREVENT`. Must be `DELETE`, `PREVENT`, or `ABANDON`.
 * `default_cloud_exadata_maintenance_window`: Default Cloud Exadata Infrastructure maintenance window used when a resource does not set `properties.maintenance_window`. Values must use the same enum values and ranges documented for resource-level maintenance windows.
 * `gcp_odb_networks_dependency`: Externally managed ODB Networks that this module may consume by key. Accepts a direct map keyed by logical name.
 * `gcp_odb_subnets_dependency`: Externally managed ODB Subnets that this module may consume by key. Accepts a direct map keyed by logical name.
@@ -53,8 +54,9 @@ The module resolves non-resource-name Exadata Infrastructure references against 
 `gcp_odb_networks_dependency` is a map keyed by logical name. Each value has these attributes:
 
 * `id`: Required. ODB Network full resource name in `projects/{project}/locations/{location}/odbNetworks/{odb_network}` format. The ODB Network ID segment is always derived from `id`.
+* `gcp_oracle_zone`: Optional. GCP Oracle zone for topology validation when known.
 
-Output maps produced by `modules/odb-networking` also include informational fields (`name`, `odb_network_id`, `location`, `project`, `state`, `entitlement_id`) for debugging and downstream consumers. These are ignored by this module and need not be supplied when constructing the map manually.
+Output maps produced by `modules/odb-networking` also include informational fields (`name`, `odb_network_id`, `network`, `location`, `project`, `state`, `entitlement_id`) for debugging and downstream consumers. These are ignored by this module and need not be supplied when constructing the map manually.
 
 `gcp_odb_subnets_dependency` is a map keyed by logical name. Each value has these attributes:
 
@@ -66,6 +68,7 @@ Output maps produced by `modules/odb-networking` also include informational fiel
 `gcp_cloud_exadata_infrastructures_dependency` is a map keyed by logical name. Each value has these attributes:
 
 * `id`: Required. Cloud Exadata Infrastructure full resource name in `projects/{project}/locations/{region}/cloudExadataInfrastructures/{cloud_exadata_infrastructure}` format.
+* `gcp_oracle_zone`: Optional. GCP Oracle zone for topology validation when known.
 
 ### <a name="cloud-exadata-infrastructures">Cloud Exadata Infrastructures</a>
 
@@ -77,9 +80,10 @@ Each map value has these attributes:
 * `display_name`: Optional. Display name of the Exadata infrastructure. Defaults to `cloud_exadata_infrastructure_id` when omitted.
 * `location`: Optional. The Google Cloud region. Overrides `default_location`. Must be `null` or non-empty with no whitespace.
 * `project_id`: Optional. The Google Cloud project ID. Overrides `default_project_id`. Must be `null` or non-empty with no whitespace.
-* `gcp_oracle_zone`: Optional. The GCP Oracle zone. Overrides `default_gcp_oracle_zone`. Must be `null` or non-empty.
+* `gcp_oracle_zone`: Optional. The GCP Oracle zone. Overrides `default_gcp_oracle_zone`. Must be `null` or non-empty with no whitespace.
 * `labels`: Optional. Labels for the Exadata infrastructure. Keys and values must satisfy the module label validation.
 * `deletion_protection`: Optional. Whether deletion protection is enabled. Overrides `default_deletion_protection`.
+* `deletion_policy`: Optional. Overrides `default_deletion_policy`. Must be `DELETE`, `PREVENT`, or `ABANDON`.
 * `timeouts`: Optional. Provider timeout overrides for `create`, `update`, and `delete`.
 * `properties`: Required. Exadata infrastructure properties.
 
@@ -136,6 +140,7 @@ Each map value has these attributes:
 * `project_id`: Optional. The Google Cloud project ID. Overrides `default_project_id`. Must be `null` or non-empty with no whitespace.
 * `labels`: Optional. Labels for the VM cluster. Keys and values must satisfy the module label validation.
 * `deletion_protection`: Optional. Whether deletion protection is enabled. Overrides `default_deletion_protection`.
+* `deletion_policy`: Optional. Overrides `default_deletion_policy`. Must be `DELETE`, `PREVENT`, or `ABANDON`.
 * `timeouts`: Optional. Provider timeout overrides for `create`, `update`, and `delete`.
 * `exadata_infrastructure`: Required. Exadata infrastructure reference. Accepts either the full resource name in `projects/{project}/locations/{region}/cloudExadataInfrastructures/{cloud_exadata_infrastructure}` format or a key from `gcp_cloud_exadata_infrastructures_configuration` / `gcp_cloud_exadata_infrastructures_dependency`.
 * `odb_network`: Required. ODB network reference. Accepts either the full resource name in `projects/{project}/locations/{location}/odbNetworks/{odb_network}` format or a key from `gcp_odb_networks_dependency`.
@@ -143,7 +148,7 @@ Each map value has these attributes:
 * `backup_odb_subnet`: Required. Backup ODB subnet reference. Accepts either the full resource name in `projects/{project}/locations/{location}/odbNetworks/{odb_network}/odbSubnets/{odb_subnet}` format or a key from `gcp_odb_subnets_dependency`.
 * `properties`: Required. VM cluster properties.
 
-Each VM cluster must set one Exadata reference, one ODB network reference, one client ODB subnet reference, and one backup ODB subnet reference. Values that start with `projects/` must match the full resource-name shape and are passed directly; other values are resolved as keys. Bare cloud resource ID segments are not accepted as external resource references; a short value is valid only when it matches a local configuration key or dependency-map key. To reference external Exadata Infrastructure, ODB Network, or ODB Subnet resources that are not present in a dependency map, pass the full Google resource name. This module intentionally exposes only ODB subnet mode for new environments. Dependency subnet entries must include `purpose`; when using keys, `odb_subnet` must point to a subnet with purpose `CLIENT_SUBNET`, and `backup_odb_subnet` must point to a subnet with purpose `BACKUP_SUBNET`. Full ODB Subnet resource names are also checked against known purpose metadata when the same subnet `id` appears in `gcp_odb_subnets_dependency`; if no matching dependency metadata exists, Terraform cannot infer the purpose before apply. The VM Cluster, Exadata Infrastructure, and ODB Network references must resolve to the same Google Cloud location. When the parent ODB Network segment is known, both subnet references must belong to the selected ODB Network. The module does not require the selected ODB Network project to match the VM Cluster project. Provider fields `network`, `cidr`, and `backup_subnet_cidr` are intentionally unsupported in this module contract.
+Each VM cluster must set one Exadata reference, one ODB network reference, one client ODB subnet reference, and one backup ODB subnet reference. Values that start with `projects/` must match the full resource-name shape and are passed directly; other values are resolved as keys. Bare cloud resource ID segments are not accepted as external resource references; a short value is valid only when it matches a local configuration key or dependency-map key. To reference external Exadata Infrastructure, ODB Network, or ODB Subnet resources that are not present in a dependency map, pass the full Google resource name. This module intentionally exposes only ODB subnet mode for new environments. Dependency subnet entries must include `purpose`; when using keys, `odb_subnet` must point to a subnet with purpose `CLIENT_SUBNET`, and `backup_odb_subnet` must point to a subnet with purpose `BACKUP_SUBNET`. Full ODB Subnet resource names are also checked against known purpose metadata when the same subnet `id` appears in `gcp_odb_subnets_dependency`; if no matching dependency metadata exists, Terraform cannot infer the purpose before apply. The VM Cluster, Exadata Infrastructure, and ODB Network references must resolve to the same Google Cloud location. When GCP Oracle zones are known from local Exadata configuration or dependency maps, the selected Exadata Infrastructure and ODB Network must use the same zone. When the parent ODB Network segment is known, both subnet references must belong to the selected ODB Network. The module does not require the selected ODB Network project to match the VM Cluster project. Provider fields `network`, `cidr`, and `backup_subnet_cidr` are intentionally unsupported in this module contract.
 
 The module intentionally ignores Terraform drift for selected VM cluster fields that can change during Oracle-managed maintenance or during operations performed through the OCI control plane in dual control-plane deployments. This prevents a later Google provider plan from trying to roll back patch, shape, capacity, storage, backup, or database server placement changes made outside this module.
 
@@ -207,6 +212,6 @@ The module returns these outputs:
 * `gcp_cloud_exadata_infrastructures`: Created Exadata infrastructures, keyed by input key.
 * `gcp_cloud_vm_clusters`: Created Exadata VM clusters, keyed by input key.
 
-Each resource output includes stable identifiers and selected computed attributes exported by the Google provider. Exadata Infrastructure outputs include server versions and storage activation counts. VM Cluster outputs include Grid Infrastructure version, cluster identity, placement, capacity, SCAN details, backup and disk redundancy settings, OCI metadata, and lifecycle state.
+Each resource output includes stable identifiers and selected computed attributes exported by the Google provider. Exadata Infrastructure outputs include `gcp_oracle_zone`, server versions, and storage activation counts. VM Cluster outputs include resolved Exadata/ODB topology references, Grid Infrastructure version, cluster identity, placement, capacity, SCAN details, backup and disk redundancy settings, OCI metadata, and lifecycle state.
 
 If `enable_output` is `false`, `gcp_cloud_exadata_infrastructures` and `gcp_cloud_vm_clusters` return `null`; `module_name` remains available.

@@ -65,6 +65,18 @@ variable "default_deletion_protection" {
   nullable    = false
 }
 
+variable "default_deletion_policy" {
+  description = "Default deletion policy used by resources that support deletion_policy. PREVENT blocks Terraform destroys unless overridden."
+  type        = string
+  default     = "PREVENT"
+  nullable    = false
+
+  validation {
+    condition     = contains(["DELETE", "PREVENT", "ABANDON"], var.default_deletion_policy)
+    error_message = "default_deletion_policy must be one of DELETE, PREVENT, or ABANDON."
+  }
+}
+
 variable "gcp_odb_networks_dependency" {
   description = "Externally managed ODB networks this module may depend on, keyed by logical name."
   type = map(object({
@@ -134,6 +146,7 @@ variable "gcp_autonomous_databases_configuration" {
     project_id             = optional(string)
     labels                 = optional(map(string), {})
     deletion_protection    = optional(bool)
+    deletion_policy        = optional(string)
 
     odb_network = optional(string)
     odb_subnet  = optional(string)
@@ -222,6 +235,14 @@ variable "gcp_autonomous_databases_configuration" {
       adb.location == null ? true : (trimspace(adb.location) != "" && adb.location == trimspace(adb.location) && !can(regex("[[:space:]]", adb.location)))
     ])
     error_message = "Autonomous database location values must be null or non-empty strings without leading, trailing, or internal whitespace."
+  }
+
+  validation {
+    condition = alltrue([
+      for adb in var.gcp_autonomous_databases_configuration :
+      adb.deletion_policy == null ? true : contains(["DELETE", "PREVENT", "ABANDON"], adb.deletion_policy)
+    ])
+    error_message = "Autonomous database deletion_policy values must be null or one of DELETE, PREVENT, or ABANDON."
   }
 
   validation {

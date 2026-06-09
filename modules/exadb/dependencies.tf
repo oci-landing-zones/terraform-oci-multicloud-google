@@ -4,7 +4,8 @@
 locals {
   gcp_odb_networks_dependency = {
     for key, network in var.gcp_odb_networks_dependency : key => {
-      id = network.id
+      id              = network.id
+      gcp_oracle_zone = try(network.gcp_oracle_zone, null)
     }
   }
 
@@ -47,7 +48,8 @@ locals {
 
   gcp_cloud_exadata_infrastructures_dependency = {
     for key, infrastructure in var.gcp_cloud_exadata_infrastructures_dependency : key => {
-      id = infrastructure.id
+      id              = infrastructure.id
+      gcp_oracle_zone = try(infrastructure.gcp_oracle_zone, null)
     }
   }
 }

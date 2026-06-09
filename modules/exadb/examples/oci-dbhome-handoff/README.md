@@ -33,6 +33,10 @@ Use the OCI region embedded in the VM Cluster OCID, not the Google Cloud region.
 For example, if the OCID starts with `ocid1.cloudvmcluster.oc1.uk-london-1`,
 set `region = "uk-london-1"`.
 
+## Security
+
+`cloud_db_homes_configuration`, `databases_configuration`, and `pluggable_databases_configuration` are marked sensitive because the upstream OCI Exadata module can carry database, wallet, and PDB passwords inside these pass-through maps. The wrapper also marks the whole OCI resource outputs as sensitive. Pass real passwords through environment variables, a secure orchestration layer, or secret tooling, and keep state in an encrypted remote backend with restricted access.
+
 ## Handoff Contract
 
 The orchestration dependency map form is:

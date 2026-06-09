@@ -72,12 +72,13 @@ variable "cloud_db_homes_configuration" {
   description = "OCI DB Home configuration. Each entry must set vm_cluster_id to either an OCI Cloud VM Cluster OCID or a key from gcp_cloud_vm_clusters_dependency."
   type        = any
   default     = null
+  sensitive   = true
 
   validation {
     condition = var.cloud_db_homes_configuration == null ? true : (
-      can(keys(var.cloud_db_homes_configuration)) &&
+      can(keys(nonsensitive(var.cloud_db_homes_configuration))) &&
       alltrue([
-        for key in keys(var.cloud_db_homes_configuration) :
+        for key in keys(nonsensitive(var.cloud_db_homes_configuration)) :
         can(regex("^[A-Z][A-Z0-9_-]*$", key))
       ])
     )
@@ -89,12 +90,13 @@ variable "databases_configuration" {
   description = "OCI CDB configuration passed through to terraform-oci-modules-exadata."
   type        = any
   default     = null
+  sensitive   = true
 
   validation {
     condition = var.databases_configuration == null ? true : (
-      can(keys(var.databases_configuration)) &&
+      can(keys(nonsensitive(var.databases_configuration))) &&
       alltrue([
-        for key in keys(var.databases_configuration) :
+        for key in keys(nonsensitive(var.databases_configuration)) :
         can(regex("^[A-Z][A-Z0-9_-]*$", key))
       ])
     )
@@ -106,12 +108,13 @@ variable "pluggable_databases_configuration" {
   description = "OCI PDB configuration passed through to terraform-oci-modules-exadata."
   type        = any
   default     = null
+  sensitive   = true
 
   validation {
     condition = var.pluggable_databases_configuration == null ? true : (
-      can(keys(var.pluggable_databases_configuration)) &&
+      can(keys(nonsensitive(var.pluggable_databases_configuration))) &&
       alltrue([
-        for key in keys(var.pluggable_databases_configuration) :
+        for key in keys(nonsensitive(var.pluggable_databases_configuration)) :
         can(regex("^[A-Z][A-Z0-9_-]*$", key))
       ])
     )

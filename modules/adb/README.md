@@ -31,7 +31,7 @@ Before running Terraform against real infrastructure, make sure these pieces are
 * A Google Cloud project enabled for Oracle Database@Google Cloud.
 * Google provider authentication for the Terraform caller.
 * IAM permissions to manage Oracle Database@Google Cloud resources.
-* Terraform `>= 1.4.0` and HashiCorp Google provider `>= 7.13.0, < 8.0.0`.
+* Terraform `>= 1.4.0` and HashiCorp Google provider `>= 7.35.0, < 8.0.0`.
 * For this reusable module: an existing ODB Network and client ODB Subnet, created by `modules/odb-networking` or an equivalent stack.
 * Oracle Database@Google Cloud entitlement and capacity in the target project and region.
 
@@ -135,7 +135,9 @@ The module returns created resources with the same keys used in the input map:
 * `gcp_autonomous_databases`
 * `module_name`
 
-Each database output includes stable identifiers, the OCI OCID, parsed OCI region, tenant, and compartment ID, OCI console URL, connection strings and URLs, private endpoint details, SQL Web Developer URL, Operations Insights state, Data Guard/peer metadata, and lifecycle state. Set `enable_output = false` to return `null` from `gcp_autonomous_databases`; `module_name` remains available.
+Each database output includes stable identifiers, configured topology (`database`, `display_name`, `odb_network`, and `odb_subnet`), the OCI OCID, parsed OCI region, tenant, and compartment ID, OCI console URL, connection strings and URLs, private endpoint details, SQL Web Developer URL, Operations Insights state, Data Guard/peer metadata, and lifecycle state. Set `enable_output = false` to return `null` from `gcp_autonomous_databases`; `module_name` remains available.
+
+`default_deletion_policy` defaults to `PREVENT` for Autonomous Database resources. Set a per-resource `deletion_policy` only when a stack intentionally needs `DELETE` or `ABANDON` behavior.
 
 ## <a name="license">License</a>
 

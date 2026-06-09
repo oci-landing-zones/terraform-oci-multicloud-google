@@ -4,14 +4,17 @@
 output "database_homes" {
   description = "OCI DB Homes created by the downstream OCI Exadata module."
   value       = module.oci_exadata_database.database_homes
+  sensitive   = true
 }
 
 output "databases" {
   description = "OCI CDBs created by the downstream OCI Exadata module."
   value       = module.oci_exadata_database.databases
+  sensitive   = true
 }
 
 output "pluggable_databases" {
   description = "OCI PDBs created by the downstream OCI Exadata module."
   value       = module.oci_exadata_database.pluggable_databases
+  sensitive   = true
 }
