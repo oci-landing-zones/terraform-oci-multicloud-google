@@ -1,0 +1,258 @@
+#-------------------------------------------------------------------------------------------------------------------------------------------
+# 1. Rename this file to <project-name>.auto.tfvars, where <project-name> is a name of your choice.
+# 2. Provide values for "GCP Connectivity Variables".
+# 3. Replace <REPLACE-BY-*> placeholders with actual values.
+# 4. Use this example for the customer-owned single-stack path: ODB Networking, Cloud Exadata Infrastructure, and VM Cluster.
+#-------------------------------------------------------------------------------------------------------------------------------------------
+
+#---------------------------------------
+# GCP Connectivity Variables
+#---------------------------------------
+
+project_id = "<REPLACE-BY-GCP-PROJECT-ID>"
+location   = "<REPLACE-BY-GCP-REGION>" # E.g., europe-west2.
+
+# Optional. Set to "<region>-<zone>-r2" to pin the GCP Oracle zone.
+# When null, the Google provider/API may select it.
+gcp_oracle_zone = null
+
+#---------------------------------------
+# Module Controls
+#---------------------------------------
+
+odb_networking_module_name = "oracle-database-networking-at-gcp"
+
+exadb_module_name   = "oracle-database-at-gcp"
+exadb_enable_output = true
+
+# SSH public key - choose one approach:
+# Option A: set ssh_public_keys directly inside the VM Cluster properties map below.
+# Option B: uncomment this file path. It must contain one RSA OpenSSH public key per non-empty line.
+# ssh_public_keys_file_path = "/path/to/id_rsa.pub"
+
+#---------------------------------------
+# Module Defaults
+#---------------------------------------
+
+default_deletion_protection = false
+
+default_labels = {
+  managed_by = "terraform"
+  workload   = "oracle_database_at_gcp"
+  component  = "exadb_vision"
+  env        = "dev"
+}
+
+default_cloud_exadata_maintenance_window = {
+  preference                       = "CUSTOM_PREFERENCE"
+  months                           = ["JANUARY", "APRIL", "JULY", "OCTOBER"]
+  weeks_of_month                   = [1]
+  days_of_week                     = ["SUNDAY"]
+  hours_of_day                     = [4]
+  lead_time_week                   = 2
+  patching_mode                    = "ROLLING"
+  custom_action_timeout_mins       = 30
+  is_custom_action_timeout_enabled = false
+}
+
+#---------------------------------------
+# ODB Networks
+#---------------------------------------
+
+gcp_odb_networks_configuration = {
+  PRIMARY = {
+    odb_network_id  = "vision-odb-network"
+    network         = "projects/<REPLACE-BY-GCP-PROJECT-ID>/global/networks/<REPLACE-BY-VPC-NAME>"
+    project_id      = null
+    location        = null
+    gcp_oracle_zone = null
+
+    labels = {
+      role = "primary"
+    }
+
+    deletion_protection = false
+
+    timeouts = {
+      create = "90m"
+      update = "60m"
+      delete = "60m"
+    }
+  }
+}
+
+#---------------------------------------
+# ODB Subnets
+#---------------------------------------
+
+gcp_odb_subnets_configuration = {
+  CLIENT = {
+    odb_subnet_id = "vision-client-subnet"
+    odb_network   = "PRIMARY"
+    cidr_range    = "192.168.1.0/24"
+    purpose       = "CLIENT_SUBNET"
+    project_id    = null
+    location      = null
+
+    labels = {
+      role = "client"
+    }
+
+    deletion_protection = false
+
+    timeouts = {
+      create = "90m"
+      update = "60m"
+      delete = "60m"
+    }
+  }
+
+  BACKUP = {
+    odb_subnet_id = "vision-backup-subnet"
+    odb_network   = "PRIMARY"
+    cidr_range    = "192.168.2.0/28"
+    purpose       = "BACKUP_SUBNET"
+    project_id    = null
+    location      = null
+
+    labels = {
+      role = "backup"
+    }
+
+    deletion_protection = false
+
+    timeouts = {
+      create = "90m"
+      update = "60m"
+      delete = "60m"
+    }
+  }
+}
+
+#---------------------------------------
+# Cloud Exadata Infrastructures
+#---------------------------------------
+
+gcp_cloud_exadata_infrastructures_configuration = {
+  PRIMARY = {
+    cloud_exadata_infrastructure_id = "vision-exadata"
+    display_name                    = "vision-exadata"
+
+    project_id          = null
+    location            = null
+    gcp_oracle_zone     = null
+    deletion_protection = false
+
+    labels = {
+      role = "primary"
+    }
+
+    timeouts = {
+      create = "300m"
+      update = "180m"
+      delete = "180m"
+    }
+
+    properties = {
+      shape                 = "Exadata.X11M"
+      compute_count         = 2
+      storage_count         = 3
+      total_storage_size_gb = null
+
+      customer_contacts = [
+        { email = "dba@example.com" }
+      ]
+
+      # Per-resource override. Set null to use default_cloud_exadata_maintenance_window.
+      maintenance_window = {
+        preference                       = "CUSTOM_PREFERENCE"
+        months                           = ["FEBRUARY", "MAY", "AUGUST", "NOVEMBER"]
+        weeks_of_month                   = [1]
+        days_of_week                     = ["SUNDAY"]
+        hours_of_day                     = [4]
+        lead_time_week                   = 2
+        patching_mode                    = "ROLLING"
+        custom_action_timeout_mins       = 30
+        is_custom_action_timeout_enabled = false
+      }
+    }
+  }
+}
+
+#---------------------------------------
+# Cloud VM Clusters
+#---------------------------------------
+
+gcp_cloud_vm_clusters_configuration = {
+  PRIMARY = {
+    cloud_vm_cluster_id = "vision-vm-cluster"
+    display_name        = "vision-vm-cluster"
+
+    project_id          = null
+    location            = null
+    deletion_protection = false
+
+    labels = {
+      role = "primary"
+    }
+
+    exadata_infrastructure = "PRIMARY"
+    odb_network            = "PRIMARY"
+    odb_subnet             = "CLIENT"
+    backup_odb_subnet      = "BACKUP"
+
+    # Full resource-name alternative: replace the dependency keys above with these values.
+    # exadata_infrastructure = "projects/<project>/locations/<region>/cloudExadataInfrastructures/<infrastructure>"
+    # odb_network            = "projects/<project>/locations/<region>/odbNetworks/<network>"
+    # odb_subnet             = "projects/<project>/locations/<region>/odbNetworks/<network>/odbSubnets/<client-subnet>"
+    # backup_odb_subnet      = "projects/<project>/locations/<region>/odbNetworks/<network>/odbSubnets/<backup-subnet>"
+
+    timeouts = {
+      create = "180m"
+      update = "90m"
+      delete = "90m"
+    }
+
+    properties = {
+      license_type = "BRING_YOUR_OWN_LICENSE"
+      gi_version   = "19.0.0.0"
+
+      cpu_core_count          = 4
+      node_count              = 2
+      ocpu_count              = 2
+      memory_size_gb          = 60
+      db_node_storage_size_gb = 120
+      data_storage_size_tb    = 2
+
+      disk_redundancy          = "HIGH"
+      local_backup_enabled     = false
+      sparse_diskgroup_enabled = false
+
+      cluster_name    = "vision"
+      hostname_prefix = "exa"
+
+      ssh_public_keys = [
+        "ssh-rsa <REPLACE-BY-RSA-PUBLIC-KEY-BASE64> <REPLACE-BY-SSH-KEY-COMMENT>"
+      ]
+
+      # Recommended: set one explicit DB server OCID per VM node.
+      # The provider schema allows null, but VM Cluster creation can fail at API time without explicit placement.
+      db_server_ocids = [
+        "ocid1.dbserver.oc1.<REPLACE-BY-OCI-REGION>.<REPLACE-BY-DB-SERVER-OCID-1>",
+        "ocid1.dbserver.oc1.<REPLACE-BY-OCI-REGION>.<REPLACE-BY-DB-SERVER-OCID-2>"
+      ]
+      # db_server_ocids = null
+
+      time_zone = {
+        id      = "UTC"
+        version = null
+      }
+
+      diagnostics_data_collection_options = {
+        diagnostics_events_enabled = true
+        health_monitoring_enabled  = true
+        incident_logs_enabled      = true
+      }
+    }
+  }
+}

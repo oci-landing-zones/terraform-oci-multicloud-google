@@ -1,0 +1,141 @@
+#-------------------------------------------------------------------------------------------------------------------------------------------
+# 1. Rename this file to <project-name>.auto.tfvars, where <project-name> is a name of your choice.
+# 2. Run this example only after the GCP VM Cluster stack has completed successfully.
+# 3. Replace <REPLACE-BY-*> placeholders with actual values.
+# 4. Do not commit real passwords, private key paths, or OCIDs.
+#-------------------------------------------------------------------------------------------------------------------------------------------
+
+#---------------------------------------
+# OCI Connectivity Variables
+#---------------------------------------
+
+# Normal planning can require OCI credentials and network access.
+# Local tests mock the OCI provider for contract validation.
+
+tenancy_ocid         = "<REPLACE-BY-TENANCY-OCID>"
+user_ocid            = "<REPLACE-BY-USER-OCID>"
+fingerprint          = "<REPLACE-BY-FINGERPRINT>"
+private_key_path     = "<REPLACE-BY-PRIVATE-KEY-PATH>"
+private_key_password = ""
+
+# Use the OCI region of the VM Cluster OCID, not the Google Cloud region.
+# For an OCID like ocid1.cloudvmcluster.oc1.uk-london-1..., use uk-london-1.
+region = "<REPLACE-BY-OCI-REGION>"
+
+#---------------------------------------
+# GCP VM Cluster Handoff
+#---------------------------------------
+
+# Primary pattern: pass the dependency map from orchestration outputs.
+gcp_cloud_vm_clusters_dependency = {
+  PRIMARY = {
+    id    = "projects/<project>/locations/<region>/cloudVmClusters/<cluster>"
+    name  = "projects/<project>/locations/<region>/cloudVmClusters/<cluster>"
+    ocid  = "ocid1.cloudvmcluster.oc1.<region>.<id>"
+    state = "AVAILABLE"
+  }
+}
+
+default_defined_tags = {}
+
+default_freeform_tags = {
+  managed_by = "terraform"
+  workload   = "oracle_database_at_gcp"
+  component  = "oci_dbhome_handoff"
+}
+
+#---------------------------------------
+# OCI DB Homes
+#---------------------------------------
+
+cloud_db_homes_configuration = {
+  DBHOME1 = {
+    # Dependency key. It resolves to gcp_cloud_vm_clusters_dependency.PRIMARY.ocid.
+    vm_cluster_id = "PRIMARY"
+
+    # Direct OCID alternative: replace the dependency key above with this value.
+    # Any ocid1.* value is treated as a direct OCID and is not resolved as a dependency key.
+    # Direct OCID values must be OCI Cloud VM Cluster OCIDs.
+    # vm_cluster_id = "ocid1.cloudvmcluster.oc1.<region>.<id>"
+
+    display_name = "primary-dbhome1"
+    db_version   = "19.0.0.0"
+    source       = "VM_CLUSTER_NEW"
+
+    enable_database_delete      = false
+    is_desupported_version      = null
+    is_unified_auditing_enabled = null
+    database_software_image_id  = null
+    db_system_id                = null
+    kms_key_id                  = null
+    kms_key_version_id          = null
+
+    defined_tags = {}
+    freeform_tags = {
+      role = "dbhome"
+    }
+  }
+}
+
+#---------------------------------------
+# OCI Container Databases
+#---------------------------------------
+
+databases_configuration = {
+  CDB1 = {
+    source     = "NONE"
+    db_home_id = "DBHOME1"
+
+    defined_tags = {}
+    freeform_tags = {
+      role = "cdb"
+    }
+
+    database = {
+      admin_password = "<REPLACE-BY-STRONG-CDB-PASSWORD>"
+      db_name        = "CDB1"
+
+      character_set  = "AL32UTF8"
+      ncharacter_set = "AL16UTF16"
+      pdb_name       = "PDB1"
+      sid_prefix     = "cdb1"
+      db_workload    = "OLTP"
+
+      tde_wallet_password = "<REPLACE-BY-STRONG-TDE-WALLET-PASSWORD>"
+
+      db_backup_config = null
+
+      # Example backup configuration:
+      # db_backup_config = {
+      #   auto_backup_enabled     = true
+      #   auto_backup_window      = "SLOT_ONE"
+      #   auto_full_backup_day    = "SUNDAY"
+      #   auto_full_backup_window = "SLOT_TWO"
+      #   backup_deletion_policy  = "DELETE_AFTER_RETENTION_PERIOD"
+      #   recovery_window_in_days = 35
+      #   run_immediate_full_backup = false
+      # }
+    }
+  }
+}
+
+#---------------------------------------
+# OCI Additional Pluggable Databases
+#---------------------------------------
+
+pluggable_databases_configuration = {
+  PDB2 = {
+    container_database_id = "CDB1"
+    pdb_name              = "PDB2"
+    pdb_admin_password    = "<REPLACE-BY-STRONG-PDB-PASSWORD>"
+    tde_wallet_password   = "<REPLACE-BY-STRONG-TDE-WALLET-PASSWORD>"
+
+    should_create_pdb_backup           = false
+    should_pdb_admin_account_be_locked = false
+
+    defined_tags = {}
+    freeform_tags = {
+      role = "pdb"
+    }
+  }
+}

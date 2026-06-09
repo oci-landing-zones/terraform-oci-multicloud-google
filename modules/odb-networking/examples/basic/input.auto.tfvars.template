@@ -1,0 +1,117 @@
+#-------------------------------------------------------------------------------------------------------------------------------------------
+# 1. Rename this file to <project-name>.auto.tfvars, where <project-name> is a name of your choice.
+# 2. Provide values for "GCP Connectivity Variables".
+# 3. Replace <REPLACE-BY-*> placeholders with actual values.
+# 4. Set odb_network on every subnet to an ODB network key or full ODB Network resource name.
+#-------------------------------------------------------------------------------------------------------------------------------------------
+
+#---------------------------------------
+# GCP Connectivity Variables
+#---------------------------------------
+
+project_id = "<REPLACE-BY-GCP-PROJECT-ID>"
+location   = "<REPLACE-BY-GCP-REGION>" # E.g., europe-west2.
+
+# Optional. Set to "<region>-<zone>-r2" to pin the GCP Oracle zone.
+# When null, the Google provider/API may select it.
+gcp_oracle_zone = null
+
+#---------------------------------------
+# Module Controls
+#---------------------------------------
+
+module_name   = "oracle-database-networking-at-gcp"
+enable_output = true
+
+#---------------------------------------
+# Module Defaults
+#---------------------------------------
+
+default_deletion_protection = false
+
+default_labels = {
+  managed_by = "terraform"
+  workload   = "oracle_database_at_gcp"
+  component  = "odb_networking"
+  env        = "dev"
+}
+
+#---------------------------------------
+# ODB Networks
+#---------------------------------------
+
+gcp_odb_networks_configuration = {
+  PRIMARY = {
+    odb_network_id  = "primary-odb-network"
+    network         = "projects/<REPLACE-BY-GCP-PROJECT-ID>/global/networks/<REPLACE-BY-VPC-NAME>"
+    project_id      = null
+    location        = null
+    gcp_oracle_zone = null
+
+    labels = {
+      role = "primary"
+    }
+
+    deletion_protection = false
+
+    timeouts = {
+      create = "90m"
+      update = "60m"
+      delete = "60m"
+    }
+  }
+}
+
+#---------------------------------------
+# ODB Subnets
+#---------------------------------------
+
+gcp_odb_subnets_configuration = {
+  CLIENT = {
+    odb_subnet_id = "primary-client-subnet"
+    odb_network   = "PRIMARY"
+    # External parent alternative: replace the key above with the full ODB Network resource name.
+    # odb_network = "projects/<REPLACE-BY-GCP-PROJECT-ID>/locations/<REPLACE-BY-GCP-REGION>/odbNetworks/<REPLACE-BY-ODB-NETWORK-ID>"
+
+    cidr_range = "192.168.1.0/24"
+    purpose    = "CLIENT_SUBNET"
+    project_id = null
+    location   = null
+
+    labels = {
+      role = "client"
+    }
+
+    deletion_protection = false
+
+    timeouts = {
+      create = "90m"
+      update = "60m"
+      delete = "60m"
+    }
+  }
+
+  BACKUP = {
+    odb_subnet_id = "primary-backup-subnet"
+    odb_network   = "PRIMARY"
+    # External parent alternative: replace the key above with the full ODB Network resource name.
+    # odb_network = "projects/<REPLACE-BY-GCP-PROJECT-ID>/locations/<REPLACE-BY-GCP-REGION>/odbNetworks/<REPLACE-BY-ODB-NETWORK-ID>"
+
+    cidr_range = "192.168.2.0/28"
+    purpose    = "BACKUP_SUBNET"
+    project_id = null
+    location   = null
+
+    labels = {
+      role = "backup"
+    }
+
+    deletion_protection = false
+
+    timeouts = {
+      create = "90m"
+      update = "60m"
+      delete = "60m"
+    }
+  }
+}

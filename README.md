@@ -1,54 +1,55 @@
-# OCI Multicloud Landing Zone for Google Cloud
+# Oracle Database@Google Cloud Terraform Modules
 
-![Landing Zone logo](./images/landing_zone_300.png)
+![Oracle Database@Google Cloud](./images/landing_zone_300.png)
 
-## Overview
+This repository provides Terraform modules for Oracle Database@Google Cloud resources managed through the HashiCorp Google provider.
 
-A collection of [terraform modules](https://developer.hashicorp.com/terraform/language/modules), templates and tutorials that helps you provision Oracle Database@Google Cloud and related components via Infrastructure as Code (IaC).
+## Modules
 
-## Prerequisites
+* [modules/odb-networking](./modules/odb-networking/README.md) — ODB Networks and ODB Subnets on top of an existing Google Cloud VPC.
+* [modules/exadb](./modules/exadb/README.md) — Cloud Exadata Infrastructure and Cloud VM Clusters in ODB Network mode.
+* [modules/adb](./modules/adb/README.md) — Oracle Autonomous Databases in ODB Network mode.
 
-To use the Terraform modules and templates in your environment, you must install the following software on the system from which you execute the terraform plans:
+The modules follow the OCI Landing Zones style. Resources are declared through keyed maps, created with `for_each`, and returned with the same keys in the outputs. ODB Network dependency outputs produced by `modules/odb-networking` can be consumed directly by the ExaDB and ADB modules through the dependency injection pattern.
 
-- [Terraform](https://developer.hashicorp.com/terraform/install) or [OpenTofu](https://opentofu.org/docs/intro/)
-- [Google Cloud CLI](https://cloud.google.com/sdk/docs/install)
-- [OCI CLI](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm)
-- [Google Cloud terraform provider](https://registry.terraform.io/providers/hashicorp/google/latest/docs)
-- [OCI terraform provider](https://registry.terraform.io/providers/oracle/oci/latest/docs)
+For the recommended Day-1 and Day-2 control plane model, see [Oracle Database@Google Cloud Operations Best Practices](https://github.com/oracle-devrel/technology-engineering/blob/main/operations-advisory/customer-operations/oracle-database/Oracle%20Database%20%40%20Google%20Cloud%20Operations/Oracle%20Database%20%40%20Google%20Operations%20Best%20Practices/README.md).
 
-## Templates 
-These module automates the provisioning of components for running Oracle Database@Google. Each template can run independently and default input values are configured which can be overridden per customer's preferences.
-- [Quickstart for Autonomous Database](./templates/gcp-oci-adbs-quickstart/README.md)
+## Requirements
 
-## Tutorial
-- [Provision Autonomous Database@Google Cloud with Terraform](https://shell.cloud.google.com/cloudshell/editor?&ephemeral=false&cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Foci-landing-zones%2Fterraform-oci-multicloud-google&cloudshell_git_branch=main&cloudshell_open_in_editor=.%2Fexamples%2Fadbs-minimal%2Fmain.tf&cloudshell_workspace=.&cloudshell_tutorial=.%2Fdocs%2Ftutorials%2Fadbs-terraform%2FREADME.md)
-- [Provision RAG Chatbot with Autonomous Database@Google Cloud](./docs/tutorials/adbs-rag-chatbot/README.md)
+* Terraform `>= 1.4.0`
+* HashiCorp Google provider `>= 7.13.0, < 8.0.0`
+* Google provider authentication configured for the Terraform caller; Application Default Credentials via `gcloud auth application-default login` is one supported option
+* OCI provider authentication configured when using the OCI DB Home handoff wrapper or operating through the OCI control plane
+* A Google Cloud project enabled for Oracle Database@Google Cloud with the required entitlement and regional capacity
 
-## Further Documentation
+The OCI DB Home handoff wrapper under `modules/exadb/examples/oci-dbhome-handoff` inherits the upstream OCI Exadata module's Terraform requirement of `>= 1.5.0`.
 
-### Terraform Provider
-- [Oracle Cloud Infrastructure Provider](https://registry.terraform.io/providers/oracle/oci/latest/docs)
-- [Google Cloud](https://registry.terraform.io/providers/hashicorp/google/latest/docs)
+## Getting Started
 
-### Terraform Modules
-- [OCI Landing Zones](https://github.com/oci-landing-zones/)
+For ODB networking, start with [modules/odb-networking/examples/basic](./modules/odb-networking/examples/basic). It creates an ODB Network and client/backup ODB Subnets on an existing Google Cloud VPC.
 
-**Acknowledgement:** Code derived adapted from samples, examples and documentations provided by above mentioned providers.
+For Cloud Exadata Infrastructure and VM Cluster deployments, start with [modules/exadb/examples/vision](./modules/exadb/examples/vision). It composes `modules/odb-networking` and `modules/exadb` to create the ODB networking layer, a Cloud Exadata Infrastructure, and a Cloud VM Cluster end to end.
+
+For Exadata DB Homes, Container Databases, and Pluggable Databases, use the OCI Landing Zones Exadata module [`terraform-oci-modules-exadata//exadata-database`](https://github.com/oci-landing-zones/terraform-oci-modules-exadata/tree/v1.1.0/exadata-database). The Google Cloud modules stop at the Cloud VM Cluster boundary and expose the OCI Cloud VM Cluster OCID in `gcp_cloud_vm_clusters`; [modules/exadb/examples/oci-dbhome-handoff](./modules/exadb/examples/oci-dbhome-handoff) shows how to pass that output into the OCI module pinned at `v1.1.0`.
+
+For Autonomous Database deployments, start with [modules/adb/examples/vision](./modules/adb/examples/vision). It composes `modules/odb-networking` and `modules/adb` to create the ODB networking layer and a single Autonomous Database end to end.
+
+Each example includes an `input.auto.tfvars.template` file. Copy it to `<project-name>.auto.tfvars` and Terraform will load it automatically.
 
 ## Help
 
-Open an [issue](https://github.com/oci-landing-zones/terraform-oci-multicloud-google/issues) in this repository.
+Open an [issue](https://github.com/oci-landing-zones/terraform-oci-multicloud-google/issues) for bugs or enhancement requests.
 
 ## Contributing
 
-This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](./CONTRIBUTING.md).
+Before submitting a pull request, review the [contribution guide](./CONTRIBUTING.md).
 
 ## Security
 
-Please consult the [security guide](./SECURITY.md) for our responsible security vulnerability disclosure process.
+Do not open GitHub issues for security vulnerabilities. Follow the [security vulnerability reporting process](./SECURITY.md).
 
 ## License
 
-Copyright (c) 2025 Oracle and/or its affiliates.
+Copyright (c) 2026, Oracle and/or its affiliates.
 
-Released under the Universal Permissive License v1.0 as shown at <https://oss.oracle.com/licenses/upl/>.
+Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
