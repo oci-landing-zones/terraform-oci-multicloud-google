@@ -1,13 +1,32 @@
 ---
-name: 💬 Question
-about: Questions regarding the OCI Multicloud Landing Zone for Azure
+name: Question
+about: Ask about using the Oracle Database@Google Cloud Terraform modules
 labels: question
 ---
 
-This Github template is intended for questions regarding the OCI Multicloud Landing Zone for Azure.
+This template is for questions about this repository's Terraform modules and examples for Oracle Database@Google Cloud.
 
-If you have a support request related to Oracle Cloud Infrastructure services, please [contact Oracle support](https://docs.cloud.oracle.com/iaas/Content/GSG/Tasks/contactingsupport.htm)
+For Oracle Cloud Infrastructure service support, contact Oracle Support.
+For Google Cloud service support, use your Google Cloud support channel.
+For core Terraform behavior, use the Terraform community resources or HashiCorp support if you are a Terraform Enterprise customer.
 
-If you have a support request or question related to core Terraform functionality, please submit them to one of these resources:
-* [Terraform community resources](https://www.terraform.io/docs/extend/community/index.html)
-* [HashiCorp support](https://support.hashicorp.com) (Terraform Enterprise customers)
+### Question
+
+<!-- Ask the question clearly and include the outcome you are trying to reach. -->
+
+### Module or Example
+
+<!--
+Examples:
+- modules/odb-networking
+- modules/adb/examples/vision
+- modules/exadb/examples/cluster
+-->
+
+### Context
+
+<!--
+Include relevant details such as region, ODB Network mode, direct references vs dependency maps,
+single-stack vs multi-stack deployment, and any error message you are seeing.
+Do not include passwords, private keys, OCIDs, tokens, or other sensitive values.
+-->

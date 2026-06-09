@@ -1,0 +1,116 @@
+#-------------------------------------------------------------------------------------------------------------------------------------------
+# 1. Rename this file to <project-name>.auto.tfvars, where <project-name> is a name of your choice.
+# 2. Provide values for "GCP Connectivity Variables".
+# 3. Replace <REPLACE-BY-*> placeholders with actual values.
+# 4. Provide the admin password via TF_VAR_gcp_autonomous_databases_admin_passwords, not in this file:
+#      export TF_VAR_gcp_autonomous_databases_admin_passwords='{"PRIMARY":"<password>"}'
+#-------------------------------------------------------------------------------------------------------------------------------------------
+
+#---------------------------------------
+# GCP Connectivity Variables
+#---------------------------------------
+
+project_id = "<REPLACE-BY-GCP-PROJECT-ID>"
+location   = "<REPLACE-BY-GCP-REGION>" # E.g., europe-west2.
+
+#---------------------------------------
+# Module Controls
+#---------------------------------------
+
+module_name   = "oracle-autonomous-database-at-gcp"
+enable_output = true
+
+#---------------------------------------
+# Module Defaults
+#---------------------------------------
+
+default_deletion_protection = false
+
+default_labels = {
+  managed_by = "terraform"
+  workload   = "oracle_database_at_gcp"
+  component  = "adb"
+  env        = "dev"
+}
+
+#---------------------------------------
+# Dependencies - ODB Network and ODB Subnet from separate stack
+#---------------------------------------
+
+# Inline maps are the primary pattern. They can come from Terragrunt dependency
+# blocks, terraform_remote_state outputs, HCP Terraform workspace outputs, or CI/CD variables.
+gcp_odb_networks_dependency = {
+  PRIMARY = {
+    id = "projects/<REPLACE-BY-GCP-PROJECT-ID>/locations/<REPLACE-BY-GCP-REGION>/odbNetworks/<REPLACE-BY-ODB-NETWORK-ID>"
+  }
+}
+
+gcp_odb_subnets_dependency = {
+  CLIENT = {
+    id      = "projects/<REPLACE-BY-GCP-PROJECT-ID>/locations/<REPLACE-BY-GCP-REGION>/odbNetworks/<REPLACE-BY-ODB-NETWORK-ID>/odbSubnets/<REPLACE-BY-CLIENT-ODB-SUBNET-ID>"
+    purpose = "CLIENT_SUBNET"
+  }
+}
+
+#---------------------------------------
+# Autonomous Databases
+#---------------------------------------
+
+gcp_autonomous_databases_configuration = {
+  PRIMARY = {
+    autonomous_database_id = "primary-adb"
+    display_name           = "primary-adb"
+    database               = "primaryadb"
+
+    project_id          = null
+    location            = null
+    deletion_protection = false
+
+    labels = {
+      role = "primary"
+    }
+
+    odb_network = "PRIMARY"
+    odb_subnet  = "CLIENT"
+
+    # Full resource-name alternative: replace the dependency keys above with these values.
+    # odb_network = "projects/<project>/locations/<region>/odbNetworks/<network>"
+    # odb_subnet  = "projects/<project>/locations/<region>/odbNetworks/<network>/odbSubnets/<client-subnet>"
+
+    timeouts = {
+      create = "240m"
+      update = "120m"
+      delete = "120m"
+    }
+
+    properties = {
+      db_workload          = "OLTP"
+      license_type         = "LICENSE_INCLUDED"
+      compute_count        = 2
+      data_storage_size_tb = 1
+      db_version           = "23ai"
+
+      character_set   = "AL32UTF8"
+      n_character_set = "AL16UTF16"
+
+      is_auto_scaling_enabled         = true
+      is_storage_auto_scaling_enabled = false
+      backup_retention_period_days    = 60
+      maintenance_schedule_type       = "REGULAR"
+      mtls_connection_required        = false
+
+      # Optional alternatives and advanced provider fields:
+      # cpu_core_count            = 2
+      # data_storage_size_gb      = 1024
+      # db_edition                = "ENTERPRISE_EDITION"
+      # private_endpoint_ip       = "192.168.1.10"
+      # private_endpoint_label    = "primary-adb"
+      # secret_id                 = "<REPLACE-BY-SECRET-ID>"
+      # vault_id                  = "<REPLACE-BY-VAULT-ID>"
+
+      customer_contacts = [
+        { email = "dba@example.com" }
+      ]
+    }
+  }
+}

@@ -1,41 +1,43 @@
 ---
-name: 🚀 Feature Request
-about: I have a suggestion (and might want to implement myself 🙂)!
+name: Feature Request
+about: Suggest an enhancement for the Oracle Database@Google Cloud Terraform modules
 labels: enhancement
 ---
 
-<!--- Please keep this note for the community --->
-
 ### Community Note
 
-* Please vote on this issue by adding a 👍 [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original issue to help the community and maintainers prioritize this request
-* Please do not leave "+1" or "me too" comments, they generate extra noise for issue followers and do not help prioritize the request
-* If you are interested in working on this issue or have submitted a pull request, please leave a comment
-
-<!--- Thank you for keeping this note for the community --->
+* Please vote on this issue by adding a reaction to the original issue to help the community and maintainers prioritize this request.
+* Please do not leave "+1" or "me too" comments, as they generate extra noise for issue followers.
+* If you are interested in working on this issue or have submitted a pull request, please leave a comment.
 
 ### Description
 
-<!--- Please leave a helpful description of the feature request here. --->
+<!-- Describe the capability, workflow, or behavior you want to add. -->
 
-### New or Affected Resource(s)
+### Affected Module or Example
 
-<!--- Please list any new or affected resources and data sources that are part of the request. For example: "oci_core_vcn" --->
+<!--
+Examples:
+- modules/odb-networking
+- modules/adb
+- modules/exadb
+- modules/exadb/examples/oci-dbhome-handoff
+-->
 
-
-### Potential Terraform Configuration
-
-<!--- Information about code formatting: https://help.github.com/articles/basic-writing-and-formatting-syntax/#quoting-code --->
+### Proposed Terraform Interface
 
 ```hcl
-# Copy-paste any Terraform configurations for how the requested feature may be used. 
+# Optional: show the input shape or module call you would expect.
 ```
+
+### Use Case
+
+<!-- Explain who needs this and what deployment or operating model it supports. -->
+
+### Alternatives Considered
+
+<!-- List any direct provider usage, wrapper module, or external orchestration workaround. -->
 
 ### References
 
-<!---
-Information about referencing Github Issues: https://help.github.com/articles/basic-writing-and-formatting-syntax/#referencing-issues-and-pull-requests
-
-Are there any other GitHub issues (open or closed) or pull requests that should be linked here? Vendor blog posts or documentation? For example:
-
---->
+<!-- Link related issues, pull requests, provider docs, or Oracle documentation. -->
